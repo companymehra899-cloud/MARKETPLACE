@@ -38,6 +38,30 @@ function adminOnly(req, res, next) {
   next();
 }
 
+const MAX_SHOTS = 5;
+const MAX_SHOT_CHARS = 220000;
+
+function sanitizeScreenshots(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((s) => typeof s === 'string')
+    .filter((s) => s.startsWith('data:image/') || /^https?:\/\//.test(s))
+    .filter((s) => s.length <= MAX_SHOT_CHARS)
+    .slice(0, MAX_SHOTS);
+}
+
+function listedOnNow() {
+  return new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function parseTech(techStack) {
+  if (Array.isArray(techStack)) return techStack.map((s) => String(s).trim()).filter(Boolean);
+  return String(techStack || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function publicListing(listing) {
   const seller = users.find((u) => u.id === listing.sellerId);
   return {
@@ -176,26 +200,90 @@ app.post('/api/listings', auth, (req, res) => {
   if (type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
   }
+  const listedOn = listedOnNow();
+  const desc = String(description);
   const listing = {
     id: uuid(),
     type,
     name: String(name).trim(),
-    category: category || (type === 'app' ? 'Education' : 'Tools'),
+    subtitle: desc.slice(0, 140),
+    category: category || (type === 'app' ? 'Education' : 'Tools & Utilities'),
     price: Number(price),
     monthlyRevenue: Number(monthlyRevenue) || 0,
     traffic: type === 'website' ? String(traffic || '0/month') : '',
     downloads: type === 'app' ? String(downloads || '0+') : '',
-    description: String(description),
-    techStack: Array.isArray(techStack) ? techStack : String(techStack || '').split(',').map((s) => s.trim()).filter(Boolean),
-    screenshots: Array.isArray(screenshots) && screenshots.length ? screenshots : [],
+    description: desc,
+    techStack: parseTech(techStack),
+    screenshots: sanitizeScreenshots(screenshots),
     contact: contact || req.user.email,
     sellerId: req.user.id,
     status: 'pending',
     featured: false,
     createdAt: new Date().toISOString(),
+    keyFeatures: ['Source and assets included', 'Admin-reviewed listing', 'Direct seller contact'],
+    whySelling: 'Looking for a buyer to take this project forward.',
+    included: type === 'app' ? 'Source code, store assets, documentation' : 'Domain, hosting notes, content, analytics',
+    support: '2 Weeks Support',
+    lastUpdated: listedOn,
+    listedOn,
+    rating: 0,
+    reviews: 0,
+    monetization: 'To be confirmed with seller',
+    language: 'English',
+    cover: 'generic',
+    appSize: type === 'app' ? '—' : '',
+    minAndroid: type === 'app' ? 'Android 5.0+' : '',
+    domainAge: type === 'website' ? '—' : '',
+    userStats: {
+      downloads: type === 'app' ? String(downloads || '0+') : String(traffic || '0'),
+      users: '—',
+      rating: '—',
+      retention: '—',
+    },
   };
   listings.unshift(listing);
   res.status(201).json({ listing: publicListing(listing) });
+});
+
+app.patch('/api/listings/:id', auth, (req, res) => {
+  const listing = listings.find((l) => l.id === req.params.id);
+  if (!listing) return res.status(404).json({ error: 'Listing not found' });
+  if (listing.sellerId !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Not allowed' });
+  }
+  const {
+    type,
+    name,
+    category,
+    price,
+    monthlyRevenue,
+    traffic,
+    downloads,
+    description,
+    techStack,
+    screenshots,
+    contact,
+  } = req.body || {};
+  if (type && type !== 'website' && type !== 'app') {
+    return res.status(400).json({ error: 'Type must be website or app' });
+  }
+  if (type) listing.type = type;
+  if (name) listing.name = String(name).trim();
+  if (category) listing.category = category;
+  if (price !== undefined && price !== '') listing.price = Number(price);
+  if (monthlyRevenue !== undefined && monthlyRevenue !== '') listing.monthlyRevenue = Number(monthlyRevenue) || 0;
+  if (listing.type === 'website' && traffic !== undefined) listing.traffic = String(traffic || '0/month');
+  if (listing.type === 'app' && downloads !== undefined) listing.downloads = String(downloads || '0+');
+  if (description) {
+    listing.description = String(description);
+    listing.subtitle = String(description).slice(0, 140);
+  }
+  if (techStack !== undefined) listing.techStack = parseTech(techStack);
+  if (screenshots) listing.screenshots = sanitizeScreenshots(screenshots);
+  if (contact !== undefined) listing.contact = contact || req.user.email;
+  listing.lastUpdated = listedOnNow();
+  if (listing.status === 'rejected') listing.status = 'pending';
+  res.json({ listing: publicListing(listing) });
 });
 
 app.get('/api/my/listings', auth, (req, res) => {

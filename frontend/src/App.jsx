@@ -57,6 +57,14 @@ export default function App() {
               </Private>
             }
           />
+          <Route
+            path="/sell/:id"
+            element={
+              <Private>
+                <Sell />
+              </Private>
+            }
+          />
           <Route path="/login" element={<Auth mode="login" />} />
           <Route path="/register" element={<Auth mode="register" />} />
           <Route

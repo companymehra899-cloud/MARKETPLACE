@@ -169,7 +169,7 @@ export default function MyListings() {
                   </>
                 ) : (
                   <>
-                    <Link className="ghost-btn" to="/sell">
+                    <Link className="ghost-btn" to={`/sell/${l.id}`}>
                       Edit
                     </Link>
                     <Link className="ghost-btn" to={`/listing/${l.id}`}>

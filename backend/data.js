@@ -42,6 +42,18 @@ function seed() {
     earnings: 0,
     createdAt: '2022-01-01T00:00:00.000Z',
   };
+  const ravi = {
+    id: uuid(),
+    name: 'Ravi Singh',
+    email: 'ravi@seller.in',
+    password: 'seller123',
+    role: 'seller',
+    verified: true,
+    rating: 4.7,
+    reviews: 9,
+    earnings: 0,
+    createdAt: '2023-03-01T00:00:00.000Z',
+  };
   const arjun = {
     id: uuid(),
     name: 'Arjun Mehta',
@@ -51,7 +63,7 @@ function seed() {
     verified: false,
     createdAt: new Date().toISOString(),
   };
-  users.push(admin, anand, rahul, arjun);
+  users.push(admin, anand, rahul, ravi, arjun);
 
   const listed = (d) => d;
 

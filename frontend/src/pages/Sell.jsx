@@ -1,7 +1,33 @@
-import React, { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import PageLayout from '../components/PageLayout.jsx';
+
+const MAX_SHOTS = 5;
+const MAX_EDGE = 900;
+const JPEG_QUALITY = 0.7;
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const blobUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(blobUrl);
+      const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(blobUrl);
+      reject(new Error('Could not read image'));
+    };
+    img.src = blobUrl;
+  });
+}
 
 const empty = {
   type: 'website',
@@ -49,10 +75,14 @@ const APP_CATS = [
 ];
 
 export default function Sell() {
+  const { id } = useParams();
+  const isEdit = Boolean(id);
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
   const [images, setImages] = useState([]);
   const [customCategory, setCustomCategory] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(isEdit);
   const fileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -60,14 +90,49 @@ export default function Sell() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function onFiles(fileList) {
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    api(`/api/listings/${id}`)
+      .then((d) => {
+        const l = d.listing;
+        const cats = l.type === 'app' ? APP_CATS : WEB_CATS;
+        const known = cats.includes(l.category);
+        setForm({
+          type: l.type,
+          name: l.name || '',
+          category: l.category || empty.category,
+          price: l.price ?? '',
+          monthlyRevenue: l.monthlyRevenue ?? '',
+          traffic: l.traffic || '',
+          downloads: l.downloads || '',
+          description: l.description || '',
+          techStack: Array.isArray(l.techStack) ? l.techStack.join(', ') : l.techStack || '',
+          contact: l.contact || '',
+        });
+        setCustomCategory(known ? '' : l.category || '');
+        setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  async function onFiles(fileList) {
     const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
-    const room = Math.max(0, 5 - images.length);
-    const next = files.slice(0, room).map((file) => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
-    setImages((prev) => [...prev, ...next]);
+    const room = Math.max(0, MAX_SHOTS - images.length);
+    if (!room) return;
+    setError('');
+    try {
+      const sliced = files.slice(0, room);
+      const next = [];
+      for (const file of sliced) {
+        const url = await compressImage(file);
+        next.push({ name: file.name, url });
+      }
+      setImages((prev) => [...prev, ...next].slice(0, MAX_SHOTS));
+    } catch {
+      setError('Could not process one of the images. Try a smaller JPG or PNG.');
+    }
   }
 
   function removeImage(index) {
@@ -77,17 +142,24 @@ export default function Sell() {
   async function submit(e) {
     e.preventDefault();
     setError('');
+    setBusy(true);
+    const payload = {
+      ...form,
+      category: customCategory.trim() || form.category,
+      screenshots: images.map((img) => img.url),
+    };
     try {
-      const data = await api('/api/listings', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...form,
-          screenshots: images.map((img) => img.url),
-        }),
-      });
-      navigate(`/listing/${data.listing.id}`);
+      if (isEdit) {
+        await api(`/api/listings/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+        navigate(`/listing/${id}`);
+      } else {
+        await api('/api/listings', { method: 'POST', body: JSON.stringify(payload) });
+        navigate('/dashboard/listings');
+      }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -95,13 +167,25 @@ export default function Sell() {
   const cats = isApp ? APP_CATS : WEB_CATS;
   const descLen = form.description.length;
 
+  if (loading) {
+    return (
+      <PageLayout className="sell-page">
+        <p className="page-loading">Loading listing...</p>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout className="sell-page">
       <header className="sell-head">
         <div>
-          <h1>Sell Your Project</h1>
-          <p>List your website or Android app</p>
-          <p className="lede">Reach thousands of potential buyers. Admin reviews every listing before it goes live.</p>
+          <h1>{isEdit ? 'Edit listing' : 'Sell Your Project'}</h1>
+          <p>{isEdit ? 'Update your website or Android app listing' : 'List your website or Android app'}</p>
+          <p className="lede">
+            {isEdit
+              ? 'Changes save to your dashboard. Pending listings stay off the public catalog until admin approval.'
+              : 'Reach thousands of potential buyers. Admin reviews every listing before it goes live.'}
+          </p>
         </div>
         <div className="sell-reach">
           <div className="reach-win">
@@ -299,8 +383,8 @@ export default function Sell() {
           <label>Contact email</label>
           <input value={form.contact} onChange={(e) => set('contact', e.target.value)} placeholder="you@email.com" />
           {error && <p className="error">{error}</p>}
-          <button className="btn btn-primary sell-submit" type="submit">
-            List Your Project →
+          <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading}>
+            {busy ? 'Saving...' : isEdit ? 'Save changes' : 'List Your Project →'}
           </button>
         </form>
 
