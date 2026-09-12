@@ -27,7 +27,7 @@ const WEB_CATS = [
   'Travel & Lifestyle',
   'Food & Recipes',
   'Technology',
-  'Other',
+  'Custom',
 ];
 
 const APP_CATS = [
@@ -45,13 +45,14 @@ const APP_CATS = [
   'Food & Drink',
   'Photography',
   'Weather',
-  'Other',
+  'Custom',
 ];
 
 export default function Sell() {
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
   const [images, setImages] = useState([]);
+  const [customCategory, setCustomCategory] = useState('');
   const fileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -125,7 +126,10 @@ export default function Sell() {
             <button
               type="button"
               className={!isApp ? 'on' : ''}
-              onClick={() => setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities' }))}
+              onClick={() => {
+                setCustomCategory('');
+                setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities' }));
+              }}
             >
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <rect x="3" y="5" width="18" height="12" rx="2" />
@@ -136,7 +140,10 @@ export default function Sell() {
             <button
               type="button"
               className={isApp ? 'on' : ''}
-              onClick={() => setForm((f) => ({ ...f, type: 'app', category: 'Education' }))}
+              onClick={() => {
+                setCustomCategory('');
+                setForm((f) => ({ ...f, type: 'app', category: 'Education' }));
+              }}
             >
               <svg viewBox="0 0 24 24" width="22" height="22">
                 <path d="M17 7l2.2-3.2M7 7L4.8 3.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" fill="none" />
@@ -152,11 +159,35 @@ export default function Sell() {
           <input value={form.name} onChange={(e) => set('name', e.target.value)} required />
 
           <label>Category</label>
-          <select value={form.category} onChange={(e) => set('category', e.target.value)} required>
+          <select
+            value={form.category === 'Custom' || customCategory ? 'Custom' : form.category}
+            onChange={(e) => {
+              if (e.target.value === 'Custom') {
+                setCustomCategory('');
+                set('category', 'Custom');
+              } else {
+                setCustomCategory('');
+                set('category', e.target.value);
+              }
+            }}
+            required
+          >
             {cats.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
+          {(form.category === 'Custom' || customCategory) && (
+            <input
+              className="custom-category"
+              value={customCategory}
+              onChange={(e) => {
+                setCustomCategory(e.target.value);
+                set('category', e.target.value || 'Custom');
+              }}
+              placeholder="Enter your category"
+              required
+            />
+          )}
 
           <div className="row">
             <div>
