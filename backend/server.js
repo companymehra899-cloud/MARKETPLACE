@@ -106,6 +106,7 @@ function uiStatus(status) {
   if (status === 'pending') return 'Under Review';
   if (status === 'sold') return 'Sold';
   if (status === 'draft') return 'Draft';
+  if (status === 'rejected') return 'Rejected';
   return status;
 }
 
@@ -472,13 +473,17 @@ app.get('/api/my/offers', auth, (req, res) => {
 });
 
 app.get('/api/admin/stats', auth, adminOnly, (_req, res) => {
+  const accounts = users.filter((u) => u.role !== 'admin');
   res.json({
-    users: users.length,
+    users: accounts.length,
     listings: listings.length,
     pending: listings.filter((l) => l.status === 'pending').length,
     approved: listings.filter((l) => l.status === 'approved').length,
     rejected: listings.filter((l) => l.status === 'rejected').length,
-    offers: offers.length,
+    sold: listings.filter((l) => l.status === 'sold').length,
+    messages: messages.length,
+    atLimit: accounts.filter((u) => listingCountFor(u.id) >= FREE_LISTING_LIMIT).length,
+    listingLimit: FREE_LISTING_LIMIT,
   });
 });
 
@@ -486,18 +491,26 @@ app.get('/api/admin/listings', auth, adminOnly, (req, res) => {
   const { status } = req.query;
   let items = listings;
   if (status) items = items.filter((l) => l.status === status);
-  res.json({ listings: items.map((l) => publicListing(l, { includePrivate: true })) });
+  res.json({
+    listings: items
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map((l) => ({
+        ...publicListing(l, { includePrivate: true }),
+        uiStatus: uiStatus(l.status),
+      })),
+  });
 });
 
 app.patch('/api/admin/listings/:id', auth, adminOnly, (req, res) => {
   const listing = listings.find((l) => l.id === req.params.id);
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
   const { status, featured } = req.body || {};
-  if (status && ['approved', 'rejected', 'pending'].includes(status)) {
+  if (status && ['approved', 'rejected', 'pending', 'sold'].includes(status)) {
     listing.status = status;
   }
   if (typeof featured === 'boolean') listing.featured = featured;
-  res.json({ listing: publicListing(listing, { includePrivate: true }) });
+  listing.lastUpdated = listedOnNow();
+  res.json({ listing: publicListing(listing, { includePrivate: true }), uiStatus: uiStatus(listing.status) });
 });
 
 app.get('/api/admin/users', auth, adminOnly, (_req, res) => {
@@ -506,20 +519,39 @@ app.get('/api/admin/users', auth, adminOnly, (_req, res) => {
       id: u.id,
       name: u.name,
       email: u.email,
+      phone: u.phone || '',
       role: u.role,
       verified: u.verified,
       createdAt: u.createdAt,
+      listingCount: listingCountFor(u.id),
+      listingLimit: u.role === 'admin' ? null : FREE_LISTING_LIMIT,
     })),
+  });
+});
+
+app.get('/api/admin/messages', auth, adminOnly, (_req, res) => {
+  res.json({
+    messages: messages.map((m) => {
+      const listing = listings.find((l) => l.id === m.listingId);
+      const from = users.find((u) => u.id === m.fromId);
+      const to = users.find((u) => u.id === m.toId);
+      return {
+        ...m,
+        listingName: listing ? listing.name : 'Listing',
+        fromName: from ? from.name : 'User',
+        toName: to ? to.name : 'User',
+        fromEmail: from ? from.email : '',
+      };
+    }),
   });
 });
 
 app.patch('/api/admin/users/:id', auth, adminOnly, (req, res) => {
   const user = users.find((u) => u.id === req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
+  if (user.role === 'admin') return res.status(400).json({ error: 'Cannot change admin account' });
   if (typeof req.body.verified === 'boolean') user.verified = req.body.verified;
-  res.json({
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, verified: user.verified },
-  });
+  res.json({ user: publicUser(user) });
 });
 
 app.listen(PORT, () => {

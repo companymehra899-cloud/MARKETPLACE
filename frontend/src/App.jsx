@@ -38,7 +38,7 @@ function AdminOnly({ children }) {
 
 export default function App() {
   const location = useLocation();
-  const hideFooter = location.pathname.startsWith('/dashboard');
+  const hideFooter = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
 
   return (
     <div className="app-shell">
@@ -133,6 +133,30 @@ export default function App() {
           />
           <Route
             path="/admin"
+            element={
+              <AdminOnly>
+                <Admin />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/listings"
+            element={
+              <AdminOnly>
+                <Admin />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminOnly>
+                <Admin />
+              </AdminOnly>
+            }
+          />
+          <Route
+            path="/admin/messages"
             element={
               <AdminOnly>
                 <Admin />
