@@ -1602,6 +1602,19 @@ main {
   padding: 22px;
 }
 
+.profile-form {
+  max-width: 520px;
+}
+
+.profile-form h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.yes-no {
+  margin-bottom: 12px;
+}
+
 .price {
   font-size: 32px;
   margin: 0 0 12px;

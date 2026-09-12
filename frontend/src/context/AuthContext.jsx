@@ -41,6 +41,14 @@ export function AuthProvider({ children }) {
         setUser(data.user);
         return data.user;
       },
+      async updateProfile(payload) {
+        const data = await api('/api/auth/me', {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+        setUser(data.user);
+        return data.user;
+      },
       logout() {
         setToken(null);
         setUser(null);

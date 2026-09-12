@@ -128,6 +128,7 @@ app.post('/api/auth/register', (req, res) => {
     password: String(password),
     role: 'user',
     verified: false,
+    phone: '',
     createdAt: new Date().toISOString(),
   };
   users.push(user);
@@ -154,6 +155,26 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 app.get('/api/auth/me', auth, (req, res) => {
+  res.json({ user: publicUser(req.user) });
+});
+
+app.patch('/api/auth/me', auth, (req, res) => {
+  const { name, email, phone } = req.body || {};
+  if (name !== undefined) {
+    const nextName = String(name).trim();
+    if (!nextName) return res.status(400).json({ error: 'Full name required' });
+    req.user.name = nextName;
+  }
+  if (email !== undefined) {
+    const nextEmail = String(email).trim().toLowerCase();
+    if (!nextEmail) return res.status(400).json({ error: 'Email address required' });
+    const taken = users.some((u) => u.id !== req.user.id && u.email.toLowerCase() === nextEmail);
+    if (taken) return res.status(400).json({ error: 'Email already registered' });
+    req.user.email = nextEmail;
+  }
+  if (phone !== undefined) {
+    req.user.phone = String(phone).trim();
+  }
   res.json({ user: publicUser(req.user) });
 });
 
@@ -213,9 +234,9 @@ app.post('/api/listings', auth, (req, res) => {
     description,
     techStack,
     screenshots,
-    contact,
-    phone,
     liveUrl,
+    monetization,
+    appSize,
   } = req.body || {};
   if (!type || !name || !price || !description) {
     return res.status(400).json({ error: 'Type, name, price and description required' });
@@ -243,8 +264,8 @@ app.post('/api/listings', auth, (req, res) => {
     description: desc,
     techStack: parseTech(techStack),
     screenshots: sanitizeScreenshots(screenshots),
-    contact: contact || req.user.email,
-    phone: String(phone || '').trim(),
+    contact: req.user.email,
+    phone: String(req.user.phone || '').trim(),
     liveUrl: type === 'website' ? String(liveUrl || '').trim() : '',
     sellerId: req.user.id,
     status: 'pending',
@@ -258,10 +279,10 @@ app.post('/api/listings', auth, (req, res) => {
     listedOn,
     rating: 0,
     reviews: 0,
-    monetization: 'To be confirmed with seller',
+    monetization: monetization === true || monetization === 'Yes' || monetization === 'yes' ? 'Yes' : 'No',
     language: 'English',
     cover: 'generic',
-    appSize: type === 'app' ? '—' : '',
+    appSize: type === 'app' ? String(appSize || '').trim() || '—' : '',
     minAndroid: type === 'app' ? 'Android 5.0+' : '',
     domainAge: type === 'website' ? '—' : '',
     userStats: {
@@ -292,9 +313,9 @@ app.patch('/api/listings/:id', auth, (req, res) => {
     description,
     techStack,
     screenshots,
-    contact,
-    phone,
     liveUrl,
+    monetization,
+    appSize,
   } = req.body || {};
   if (type && type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
@@ -306,14 +327,19 @@ app.patch('/api/listings/:id', auth, (req, res) => {
   if (monthlyRevenue !== undefined && monthlyRevenue !== '') listing.monthlyRevenue = Number(monthlyRevenue) || 0;
   if (listing.type === 'website' && traffic !== undefined) listing.traffic = String(traffic || '0/month');
   if (listing.type === 'app' && downloads !== undefined) listing.downloads = String(downloads || '0+');
+  if (listing.type === 'app' && appSize !== undefined) listing.appSize = String(appSize || '').trim() || '—';
+  if (listing.type !== 'app') listing.appSize = '';
   if (description) {
     listing.description = String(description);
     listing.subtitle = String(description).slice(0, 140);
   }
   if (techStack !== undefined) listing.techStack = parseTech(techStack);
   if (screenshots) listing.screenshots = sanitizeScreenshots(screenshots);
-  if (contact !== undefined) listing.contact = contact || req.user.email;
-  if (phone !== undefined) listing.phone = String(phone || '').trim();
+  if (monetization !== undefined) {
+    listing.monetization = monetization === true || monetization === 'Yes' || monetization === 'yes' ? 'Yes' : 'No';
+  }
+  listing.contact = req.user.email;
+  listing.phone = String(req.user.phone || '').trim();
   if (liveUrl !== undefined) listing.liveUrl = listing.type === 'website' ? String(liveUrl || '').trim() : '';
   listing.lastUpdated = listedOnNow();
   if (listing.status === 'rejected') listing.status = 'pending';

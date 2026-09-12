@@ -16,6 +16,7 @@ function seed() {
     password: 'admin123',
     role: 'admin',
     verified: true,
+    phone: '9876543210',
     createdAt: '2022-01-10T00:00:00.000Z',
   };
   const anand = {
@@ -25,6 +26,7 @@ function seed() {
     password: 'seller123',
     role: 'user',
     verified: true,
+    phone: '9811122233',
     rating: 4.9,
     reviews: 18,
     earnings: 285000,
@@ -37,6 +39,7 @@ function seed() {
     password: 'seller123',
     role: 'user',
     verified: true,
+    phone: '9822233344',
     rating: 4.8,
     reviews: 24,
     earnings: 0,
@@ -49,6 +52,7 @@ function seed() {
     password: 'seller123',
     role: 'user',
     verified: true,
+    phone: '9833344455',
     rating: 4.7,
     reviews: 9,
     earnings: 0,
@@ -61,6 +65,7 @@ function seed() {
     password: 'buyer123',
     role: 'user',
     verified: false,
+    phone: '9844455566',
     createdAt: new Date().toISOString(),
   };
   users.push(admin, anand, rahul, ravi, arjun);

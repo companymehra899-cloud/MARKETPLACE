@@ -39,9 +39,9 @@ const empty = {
   downloads: '',
   description: '',
   techStack: '',
-  contact: '',
-  phone: '',
   liveUrl: '',
+  monetization: 'No',
+  appSize: '',
 };
 
 const WEB_CATS = [
@@ -126,9 +126,9 @@ export default function Sell() {
           downloads: l.downloads || '',
           description: l.description || '',
           techStack: Array.isArray(l.techStack) ? l.techStack.join(', ') : l.techStack || '',
-          contact: l.contact || '',
-          phone: l.phone || '',
           liveUrl: l.liveUrl || '',
+          monetization: l.monetization === 'Yes' || l.monetization === true ? 'Yes' : 'No',
+          appSize: l.appSize && l.appSize !== '—' ? l.appSize : '',
         });
         setCustomCategory(known ? '' : l.category || '');
         setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
@@ -318,12 +318,24 @@ export default function Sell() {
 
           {isApp ? (
             <>
-              <label>Downloads</label>
-              <input
-                value={form.downloads}
-                onChange={(e) => set('downloads', e.target.value)}
-                placeholder="10K+"
-              />
+              <div className="row">
+                <div>
+                  <label>Downloads</label>
+                  <input
+                    value={form.downloads}
+                    onChange={(e) => set('downloads', e.target.value)}
+                    placeholder="10K+"
+                  />
+                </div>
+                <div>
+                  <label>App size</label>
+                  <input
+                    value={form.appSize}
+                    onChange={(e) => set('appSize', e.target.value)}
+                    placeholder="18 MB"
+                  />
+                </div>
+              </div>
             </>
           ) : (
             <>
@@ -414,15 +426,15 @@ export default function Sell() {
             onChange={(e) => set('techStack', e.target.value)}
             placeholder="React, Node.js, MongoDB"
           />
-          <label>Contact email</label>
-          <input value={form.contact} onChange={(e) => set('contact', e.target.value)} placeholder="you@email.com" />
-          <label>Phone number</label>
-          <input
-            value={form.phone}
-            onChange={(e) => set('phone', e.target.value)}
-            placeholder="9876543210"
-            inputMode="tel"
-          />
+          <label>Monetization</label>
+          <div className="type-cards yes-no">
+            <button type="button" className={form.monetization === 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'Yes')}>
+              Yes
+            </button>
+            <button type="button" className={form.monetization !== 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'No')}>
+              No
+            </button>
+          </div>
           {error && <p className="error">{error}</p>}
           <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading || (!isEdit && limitReached)}>
             {busy ? 'Saving...' : isEdit ? 'Save changes' : limitReached ? 'Listing limit reached' : 'List Your Project →'}

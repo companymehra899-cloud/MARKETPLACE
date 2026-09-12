@@ -135,22 +135,57 @@ export function EarningsPage() {
 
 export function ProfilePage() {
   const stats = useMine();
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setName(user?.name || '');
+    setEmail(user?.email || '');
+    setPhone(user?.phone || '');
+  }, [user]);
+
+  async function save(e) {
+    e.preventDefault();
+    setError('');
+    setNote('');
+    setBusy(true);
+    try {
+      await updateProfile({ name, email, phone });
+      setNote('Profile saved.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <SellerShell stats={stats}>
       <div className="ml-head">
         <div>
           <h1>Profile Settings</h1>
-          <p>Your public profile shown on listings.</p>
+          <p>Personal information used across buy and sell.</p>
         </div>
       </div>
-      <div className="panel" style={{ maxWidth: 520 }}>
-        <p>
-          <strong>{user.name}</strong>
-        </p>
-        <p className="empty">{user.email}</p>
-        <p className="empty">Account · {user.verified ? 'Verified' : 'Unverified'}</p>
-      </div>
+      <form className="panel form profile-form" onSubmit={save}>
+        <h2>Personal Information</h2>
+        <label>Full Name</label>
+        <input value={name} onChange={(e) => setName(e.target.value)} required />
+        <label>Email Address</label>
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <label>Mobile Number</label>
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" inputMode="tel" />
+        {error && <p className="error">{error}</p>}
+        {note && <p className="empty">{note}</p>}
+        <button className="btn btn-primary" type="submit" disabled={busy}>
+          {busy ? 'Saving...' : 'Save Profile'}
+        </button>
+      </form>
     </SellerShell>
   );
 }
