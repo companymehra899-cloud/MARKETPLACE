@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import PageLayout from '../components/PageLayout.jsx';
 
-const MAX_SHOTS = 5;
+const MAX_SHOTS = 2;
 const MAX_EDGE = 900;
 const JPEG_QUALITY = 0.7;
 
@@ -40,6 +40,8 @@ const empty = {
   description: '',
   techStack: '',
   contact: '',
+  phone: '',
+  liveUrl: '',
 };
 
 const WEB_CATS = [
@@ -109,6 +111,8 @@ export default function Sell() {
           description: l.description || '',
           techStack: Array.isArray(l.techStack) ? l.techStack.join(', ') : l.techStack || '',
           contact: l.contact || '',
+          phone: l.phone || '',
+          liveUrl: l.liveUrl || '',
         });
         setCustomCategory(known ? '' : l.category || '');
         setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
@@ -305,6 +309,12 @@ export default function Sell() {
                 onChange={(e) => set('traffic', e.target.value)}
                 placeholder="12K/month"
               />
+              <label>Live website URL</label>
+              <input
+                value={form.liveUrl}
+                onChange={(e) => set('liveUrl', e.target.value)}
+                placeholder="https://example.com"
+              />
             </>
           )}
 
@@ -357,7 +367,7 @@ export default function Sell() {
                     </button>
                   </figure>
                 ))}
-                {images.length < 5 && <span className="upload-more">+ Add more</span>}
+                {images.length < MAX_SHOTS && <span className="upload-more">+ Add more</span>}
               </div>
             ) : (
               <>
@@ -369,7 +379,7 @@ export default function Sell() {
                   </svg>
                 </span>
                 <b>Click to upload images</b>
-                <em>PNG, JPG (Max 5 images)</em>
+                <em>PNG, JPG (Max 2 images)</em>
               </>
             )}
           </div>
@@ -382,6 +392,13 @@ export default function Sell() {
           />
           <label>Contact email</label>
           <input value={form.contact} onChange={(e) => set('contact', e.target.value)} placeholder="you@email.com" />
+          <label>Phone number</label>
+          <input
+            value={form.phone}
+            onChange={(e) => set('phone', e.target.value)}
+            placeholder="9876543210"
+            inputMode="tel"
+          />
           {error && <p className="error">{error}</p>}
           <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading}>
             {busy ? 'Saving...' : isEdit ? 'Save changes' : 'List Your Project →'}

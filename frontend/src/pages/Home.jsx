@@ -26,13 +26,11 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const order = ['TaskFlow Pro', 'Study Master', 'Travel Guide Blog', 'Expense Tracker'];
-  const featured = listings
-    .filter((l) => order.includes(l.name))
-    .sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
-  const pool = featured.length ? featured : listings;
-  const visible = pool.slice(start, start + 4);
-  const maxStart = Math.max(0, pool.length - 4);
+  const PAGE = 4;
+  const featured = listings.filter((l) => l.featured);
+  const rest = listings.filter((l) => !l.featured);
+  const pool = featured.length ? [...featured, ...rest] : listings;
+  const maxStart = Math.max(0, pool.length - PAGE);
 
   function search(e) {
     e.preventDefault();
@@ -176,18 +174,35 @@ export default function Home() {
           </div>
           <div className="head-actions">
             <Link to="/websites">View All Listings →</Link>
-            <button type="button" className="circle" onClick={() => setStart((s) => Math.max(0, s - 1))} aria-label="Previous">
+            <button
+              type="button"
+              className="circle"
+              onClick={() => setStart((s) => Math.max(0, s - 1))}
+              disabled={start <= 0}
+              aria-label="Previous"
+            >
               ‹
             </button>
-            <button type="button" className="circle" onClick={() => setStart((s) => Math.min(maxStart, s + 1))} aria-label="Next">
+            <button
+              type="button"
+              className="circle"
+              onClick={() => setStart((s) => Math.min(maxStart, s + 1))}
+              disabled={start >= maxStart}
+              aria-label="Next"
+            >
               ›
             </button>
           </div>
         </div>
-        <div className="cards-4">
-          {visible.map((l) => (
-            <ListingCard key={l.id} listing={l} />
-          ))}
+        <div className="featured-viewport">
+          <div
+            className="featured-track"
+            style={{ transform: `translateX(calc(-${start} * ((100% + 18px) / ${PAGE})))` }}
+          >
+            {pool.map((l) => (
+              <ListingCard key={l.id} listing={l} />
+            ))}
+          </div>
         </div>
       </section>
 

@@ -126,10 +126,6 @@ export default function MyListings() {
                         <small>Downloads</small>
                       </span>
                       <span>
-                        <b>{l.rating}</b>
-                        <small>Rating</small>
-                      </span>
-                      <span>
                         <b>{l.appSize}</b>
                         <small>App Size</small>
                       </span>

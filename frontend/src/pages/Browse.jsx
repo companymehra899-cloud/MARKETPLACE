@@ -103,7 +103,6 @@ export default function Browse({ type }) {
   const monetization = params.get('monetization') || '';
   const downloads = params.get('downloads') || '';
   const revRange = params.get('revRange') || '';
-  const rating = params.get('rating') || '';
   const updated = params.get('updated') || '';
 
   const isApp = type === 'app';
@@ -174,7 +173,6 @@ export default function Browse({ type }) {
         if (revRange === '5k' && item.monthlyRevenue < 5000) return false;
         if (revRange === '10k' && item.monthlyRevenue < 10000) return false;
         if (revRange === '20k' && item.monthlyRevenue < 20000) return false;
-        if (rating && Number(item.rating || 0) < Number(rating)) return false;
         if (updated === '30' && daysAgo(item.lastUpdated || item.createdAt) > 30) return false;
         if (updated === '90' && daysAgo(item.lastUpdated || item.createdAt) > 90) return false;
         if (updated === '365' && daysAgo(item.lastUpdated || item.createdAt) > 365) return false;
@@ -205,7 +203,6 @@ export default function Browse({ type }) {
     monetization,
     downloads,
     revRange,
-    rating,
     updated,
   ]);
 
@@ -236,7 +233,6 @@ export default function Browse({ type }) {
       monetization ||
       downloads ||
       revRange ||
-      rating ||
       updated
   );
 
@@ -362,15 +358,6 @@ export default function Browse({ type }) {
                   <option value="5k">₹5,000+</option>
                   <option value="10k">₹10,000+</option>
                   <option value="20k">₹20,000+</option>
-                </select>
-              </div>
-              <div className="filter-block">
-                <label className="filter-label">Rating</label>
-                <select value={rating} onChange={(e) => update('rating', e.target.value)}>
-                  <option value="">Any Rating</option>
-                  <option value="4">4.0+</option>
-                  <option value="4.5">4.5+</option>
-                  <option value="4.7">4.7+</option>
                 </select>
               </div>
               <div className="filter-block">

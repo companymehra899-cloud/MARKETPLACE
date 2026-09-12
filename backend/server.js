@@ -38,7 +38,7 @@ function adminOnly(req, res, next) {
   next();
 }
 
-const MAX_SHOTS = 5;
+const MAX_SHOTS = 2;
 const MAX_SHOT_CHARS = 220000;
 
 function sanitizeScreenshots(list) {
@@ -62,10 +62,11 @@ function parseTech(techStack) {
     .filter(Boolean);
 }
 
-function publicListing(listing) {
+function publicListing(listing, opts = {}) {
   const seller = users.find((u) => u.id === listing.sellerId);
-  return {
-    ...listing,
+  const { phone, ...rest } = listing;
+  const out = {
+    ...rest,
     seller: seller
       ? {
           id: seller.id,
@@ -77,6 +78,8 @@ function publicListing(listing) {
         }
       : null,
   };
+  if (opts.includePrivate) out.phone = phone || '';
+  return out;
 }
 
 function uiStatus(status) {
@@ -177,7 +180,7 @@ app.get('/api/listings/:id', optionalAuth, (req, res) => {
   if (listing.status !== 'approved' && !isOwner && !isAdmin) {
     return res.status(404).json({ error: 'Listing not found' });
   }
-  res.json({ listing: publicListing(listing) });
+  res.json({ listing: publicListing(listing, { includePrivate: isOwner || isAdmin }) });
 });
 
 app.post('/api/listings', auth, (req, res) => {
@@ -193,6 +196,8 @@ app.post('/api/listings', auth, (req, res) => {
     techStack,
     screenshots,
     contact,
+    phone,
+    liveUrl,
   } = req.body || {};
   if (!type || !name || !price || !description) {
     return res.status(400).json({ error: 'Type, name, price and description required' });
@@ -216,6 +221,8 @@ app.post('/api/listings', auth, (req, res) => {
     techStack: parseTech(techStack),
     screenshots: sanitizeScreenshots(screenshots),
     contact: contact || req.user.email,
+    phone: String(phone || '').trim(),
+    liveUrl: type === 'website' ? String(liveUrl || '').trim() : '',
     sellerId: req.user.id,
     status: 'pending',
     featured: false,
@@ -263,6 +270,8 @@ app.patch('/api/listings/:id', auth, (req, res) => {
     techStack,
     screenshots,
     contact,
+    phone,
+    liveUrl,
   } = req.body || {};
   if (type && type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
@@ -281,16 +290,18 @@ app.patch('/api/listings/:id', auth, (req, res) => {
   if (techStack !== undefined) listing.techStack = parseTech(techStack);
   if (screenshots) listing.screenshots = sanitizeScreenshots(screenshots);
   if (contact !== undefined) listing.contact = contact || req.user.email;
+  if (phone !== undefined) listing.phone = String(phone || '').trim();
+  if (liveUrl !== undefined) listing.liveUrl = listing.type === 'website' ? String(liveUrl || '').trim() : '';
   listing.lastUpdated = listedOnNow();
   if (listing.status === 'rejected') listing.status = 'pending';
-  res.json({ listing: publicListing(listing) });
+  res.json({ listing: publicListing(listing, { includePrivate: true }) });
 });
 
 app.get('/api/my/listings', auth, (req, res) => {
   const mine = listings
     .filter((l) => l.sellerId === req.user.id)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .map((l) => ({ ...publicListing(l), uiStatus: uiStatus(l.status) }));
+    .map((l) => ({ ...publicListing(l, { includePrivate: true }), uiStatus: uiStatus(l.status) }));
   const stats = {
     total: mine.length,
     active: mine.filter((l) => l.status === 'approved').length,
@@ -419,7 +430,7 @@ app.get('/api/admin/listings', auth, adminOnly, (req, res) => {
   const { status } = req.query;
   let items = listings;
   if (status) items = items.filter((l) => l.status === status);
-  res.json({ listings: items.map(publicListing) });
+  res.json({ listings: items.map((l) => publicListing(l, { includePrivate: true })) });
 });
 
 app.patch('/api/admin/listings/:id', auth, adminOnly, (req, res) => {
@@ -430,7 +441,7 @@ app.patch('/api/admin/listings/:id', auth, adminOnly, (req, res) => {
     listing.status = status;
   }
   if (typeof featured === 'boolean') listing.featured = featured;
-  res.json({ listing: publicListing(listing) });
+  res.json({ listing: publicListing(listing, { includePrivate: true }) });
 });
 
 app.get('/api/admin/users', auth, adminOnly, (_req, res) => {
