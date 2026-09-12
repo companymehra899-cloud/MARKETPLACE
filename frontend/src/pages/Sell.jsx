@@ -85,12 +85,28 @@ export default function Sell() {
   const [customCategory, setCustomCategory] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [limitReached, setLimitReached] = useState(false);
+  const [listingCount, setListingCount] = useState(0);
+  const [listingLimit, setListingLimit] = useState(3);
   const fileRef = useRef(null);
   const navigate = useNavigate();
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
   }
+
+  useEffect(() => {
+    if (id) return;
+    api('/api/my/listings')
+      .then((d) => {
+        const count = d.stats?.listingCount ?? (d.listings || []).length;
+        const limit = d.stats?.listingLimit ?? 3;
+        setListingCount(count);
+        setListingLimit(limit);
+        setLimitReached(limit != null && count >= limit);
+      })
+      .catch(() => {});
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -188,8 +204,16 @@ export default function Sell() {
           <p className="lede">
             {isEdit
               ? 'Changes save to your dashboard. Pending listings stay off the public catalog until admin approval.'
-              : 'Reach thousands of potential buyers. Admin reviews every listing before it goes live.'}
+              : `Reach thousands of potential buyers. Free accounts can list up to ${listingLimit} projects.`}
           </p>
+          {!isEdit && !limitReached && listingLimit != null && (
+            <p className="lede">
+              {listingCount} of {listingLimit} free listings used.
+            </p>
+          )}
+          {!isEdit && limitReached && (
+            <p className="error">Free plan allows {listingLimit} listings per account.</p>
+          )}
         </div>
         <div className="sell-reach">
           <div className="reach-win">
@@ -400,8 +424,8 @@ export default function Sell() {
             inputMode="tel"
           />
           {error && <p className="error">{error}</p>}
-          <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading}>
-            {busy ? 'Saving...' : isEdit ? 'Save changes' : 'List Your Project →'}
+          <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading || (!isEdit && limitReached)}>
+            {busy ? 'Saving...' : isEdit ? 'Save changes' : limitReached ? 'Listing limit reached' : 'List Your Project →'}
           </button>
         </form>
 

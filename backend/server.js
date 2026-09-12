@@ -40,6 +40,25 @@ function adminOnly(req, res, next) {
 
 const MAX_SHOTS = 2;
 const MAX_SHOT_CHARS = 220000;
+const FREE_LISTING_LIMIT = 3;
+
+function listingCountFor(userId) {
+  return listings.filter((l) => l.sellerId === userId).length;
+}
+
+function atFreeListingLimit(user) {
+  if (!user || user.role === 'admin') return false;
+  return listingCountFor(user.id) >= FREE_LISTING_LIMIT;
+}
+
+function publicUser(user) {
+  const { password, ...safe } = user;
+  return {
+    ...safe,
+    listingCount: listingCountFor(user.id),
+    listingLimit: user.role === 'admin' ? null : FREE_LISTING_LIMIT,
+  };
+}
 
 function sanitizeScreenshots(list) {
   if (!Array.isArray(list)) return [];
@@ -95,7 +114,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.post('/api/auth/register', (req, res) => {
-  const { name, email, password, role } = req.body || {};
+  const { name, email, password } = req.body || {};
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email and password required' });
   }
@@ -107,7 +126,7 @@ app.post('/api/auth/register', (req, res) => {
     name: String(name).trim(),
     email: String(email).trim().toLowerCase(),
     password: String(password),
-    role: role === 'admin' ? 'buyer' : 'buyer',
+    role: 'user',
     verified: false,
     createdAt: new Date().toISOString(),
   };
@@ -116,7 +135,7 @@ app.post('/api/auth/register', (req, res) => {
   tokens.set(token, user.id);
   res.json({
     token,
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, verified: user.verified },
+    user: publicUser(user),
   });
 });
 
@@ -130,13 +149,12 @@ app.post('/api/auth/login', (req, res) => {
   tokens.set(token, user.id);
   res.json({
     token,
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, verified: user.verified },
+    user: publicUser(user),
   });
 });
 
 app.get('/api/auth/me', auth, (req, res) => {
-  const { password, ...safe } = req.user;
-  res.json({ user: safe });
+  res.json({ user: publicUser(req.user) });
 });
 
 app.get('/api/listings', optionalAuth, (req, res) => {
@@ -204,6 +222,11 @@ app.post('/api/listings', auth, (req, res) => {
   }
   if (type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
+  }
+  if (atFreeListingLimit(req.user)) {
+    return res.status(403).json({
+      error: `Free plan allows ${FREE_LISTING_LIMIT} listings per account.`,
+    });
   }
   const listedOn = listedOnNow();
   const desc = String(description);
@@ -311,6 +334,8 @@ app.get('/api/my/listings', auth, (req, res) => {
     earnings: req.user.earnings || mine.filter((l) => l.status === 'sold').reduce((s, l) => s + l.price, 0),
     offers: offers.filter((o) => o.sellerId === req.user.id && o.status === 'open').length,
     messages: messages.filter((m) => m.toId === req.user.id).length,
+    listingLimit: req.user.role === 'admin' ? null : FREE_LISTING_LIMIT,
+    listingCount: mine.length,
   };
   res.json({ listings: mine, stats });
 });
@@ -362,6 +387,11 @@ app.post('/api/watchlist/:id', auth, (req, res) => {
 app.post('/api/listings/:id/duplicate', auth, (req, res) => {
   const listing = listings.find((l) => l.id === req.params.id && l.sellerId === req.user.id);
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
+  if (atFreeListingLimit(req.user)) {
+    return res.status(403).json({
+      error: `Free plan allows ${FREE_LISTING_LIMIT} listings per account.`,
+    });
+  }
   const copy = {
     ...listing,
     id: uuid(),

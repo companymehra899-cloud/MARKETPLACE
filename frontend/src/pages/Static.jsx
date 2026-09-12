@@ -19,7 +19,7 @@ const COPY = {
     body: [
       'Listings go live after admin approval. Pending items stay in your dashboard.',
       'Offers are sent to the seller with your message and amount.',
-      'Demo logins: admin@nexmarket.in / admin123, ravi@seller.in / seller123, arjun@buyer.in / buyer123.',
+      'One login for buying and selling. Demo: ravi@seller.in / seller123 or arjun@buyer.in / buyer123. Free accounts can list 3 projects.',
     ],
   },
   safety: {

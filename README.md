@@ -23,8 +23,10 @@ npm run dev
 
 Frontend proxies `/api` to `http://localhost:3001`.
 
+One account is used for both buying and selling. Free accounts can create 3 listings.
+
 ## Demo accounts
 
+- Account: ravi@seller.in / seller123
+- Account: arjun@buyer.in / buyer123
 - Admin: admin@nexmarket.in / admin123
-- Seller: ravi@seller.in / seller123
-- Buyer: arjun@buyer.in / buyer123

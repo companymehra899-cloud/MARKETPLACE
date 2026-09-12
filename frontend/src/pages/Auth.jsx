@@ -32,8 +32,8 @@ export default function Auth({ mode }) {
         <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
         <p className="lede">
           {isLogin
-            ? 'Access your listings, offers, and saved deals.'
-            : 'Create an account to list a website or Android app, or to make offers.'}
+            ? 'One account to buy and sell websites and Android apps.'
+            : 'Create one account to buy or sell websites and Android apps. Free plan includes 3 listings.'}
         </p>
         <form className="form" onSubmit={submit}>
           {!isLogin && (

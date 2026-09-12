@@ -66,7 +66,7 @@ export default function Navbar() {
                 <span className="avatar sm">{initial}</span>
                 <span>
                   <b>{user.name.split(' ')[0]}</b>
-                  <small>{user.role === 'admin' ? 'Admin' : 'Seller'}</small>
+                  <small>{user.role === 'admin' ? 'Admin' : 'Account'}</small>
                 </span>
               </button>
               {menu && (
@@ -77,11 +77,9 @@ export default function Navbar() {
                   <NavLink to="/dashboard/listings" onClick={() => setMenu(false)}>
                     My Listings
                   </NavLink>
-                  {user.role === 'admin' && (
-                    <NavLink to="/admin" onClick={() => setMenu(false)}>
-                      Admin
-                    </NavLink>
-                  )}
+                  <NavLink to="/dashboard/profile" onClick={() => setMenu(false)}>
+                    Profile
+                  </NavLink>
                   <button
                     type="button"
                     onClick={() => {

@@ -38,8 +38,12 @@ export default function MyListings() {
   }, [listings, tab, sort]);
 
   async function duplicate(id) {
-    await api(`/api/listings/${id}/duplicate`, { method: 'POST' });
-    load();
+    try {
+      await api(`/api/listings/${id}/duplicate`, { method: 'POST' });
+      load();
+    } catch (err) {
+      window.alert(err.message);
+    }
   }
 
   const counts = {
@@ -57,9 +61,15 @@ export default function MyListings() {
           <h1>My Listings</h1>
           <p>Manage your website and Android app listings, view offers and track performance.</p>
         </div>
-        <Link className="btn btn-primary" to="/sell">
-          + Add New Listing
-        </Link>
+        {stats?.listingLimit != null && stats.listingCount >= stats.listingLimit ? (
+          <span className="btn btn-outline" aria-disabled="true">
+            Free limit reached ({stats.listingCount}/{stats.listingLimit})
+          </span>
+        ) : (
+          <Link className="btn btn-primary" to="/sell">
+            + Add New Listing
+          </Link>
+        )}
       </div>
 
       <div className="ml-stats">

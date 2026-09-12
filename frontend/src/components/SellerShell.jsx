@@ -105,7 +105,7 @@ export default function SellerShell({ stats, children }) {
           <span className="avatar">{initial}</span>
           <div>
             <strong>{user?.name}</strong>
-            <small>Seller Account</small>
+            <small>Account</small>
           </div>
         </div>
         <nav className="seller-nav">

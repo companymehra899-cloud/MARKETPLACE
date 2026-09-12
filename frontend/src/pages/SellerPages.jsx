@@ -141,7 +141,7 @@ export function ProfilePage() {
       <div className="ml-head">
         <div>
           <h1>Profile Settings</h1>
-          <p>Public seller profile shown on listings.</p>
+          <p>Your public profile shown on listings.</p>
         </div>
       </div>
       <div className="panel" style={{ maxWidth: 520 }}>
@@ -149,7 +149,7 @@ export function ProfilePage() {
           <strong>{user.name}</strong>
         </p>
         <p className="empty">{user.email}</p>
-        <p className="empty">Seller Account · {user.verified ? 'Verified' : 'Unverified'}</p>
+        <p className="empty">Account · {user.verified ? 'Verified' : 'Unverified'}</p>
       </div>
     </SellerShell>
   );
