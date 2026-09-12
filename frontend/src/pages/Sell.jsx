@@ -339,12 +339,27 @@ export default function Sell() {
             </>
           ) : (
             <>
-              <label>Monthly visitors</label>
-              <input
-                value={form.traffic}
-                onChange={(e) => set('traffic', e.target.value)}
-                placeholder="12K/month"
-              />
+              <div className="row">
+                <div>
+                  <label>Monthly visitors</label>
+                  <input
+                    value={form.traffic}
+                    onChange={(e) => set('traffic', e.target.value)}
+                    placeholder="12K/month"
+                  />
+                </div>
+                <div>
+                  <label>Monetization</label>
+                  <div className="type-cards yes-no">
+                    <button type="button" className={form.monetization === 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'Yes')}>
+                      Yes
+                    </button>
+                    <button type="button" className={form.monetization !== 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'No')}>
+                      No
+                    </button>
+                  </div>
+                </div>
+              </div>
               <label>Live website URL</label>
               <input
                 value={form.liveUrl}
@@ -426,15 +441,6 @@ export default function Sell() {
             onChange={(e) => set('techStack', e.target.value)}
             placeholder="React, Node.js, MongoDB"
           />
-          <label>Monetization</label>
-          <div className="type-cards yes-no">
-            <button type="button" className={form.monetization === 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'Yes')}>
-              Yes
-            </button>
-            <button type="button" className={form.monetization !== 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'No')}>
-              No
-            </button>
-          </div>
           {error && <p className="error">{error}</p>}
           <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading || (!isEdit && limitReached)}>
             {busy ? 'Saving...' : isEdit ? 'Save changes' : limitReached ? 'Listing limit reached' : 'List Your Project →'}

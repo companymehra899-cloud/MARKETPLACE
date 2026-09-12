@@ -1612,7 +1612,11 @@ main {
 }
 
 .yes-no {
-  margin-bottom: 12px;
+  margin-bottom: 0;
+}
+
+.yes-no button {
+  padding: 11px 12px;
 }
 
 .price {
