@@ -6,13 +6,8 @@ const LINKS = [
   { to: '/dashboard', label: 'Dashboard', icon: 'home' },
   { to: '/dashboard/listings', label: 'My Listings', icon: 'plus' },
   { to: '/sell', label: 'Add New Listing', icon: 'add' },
-  { to: '/dashboard/offers', label: 'Offers', icon: 'mail', badgeKey: 'offers' },
   { to: '/dashboard/messages', label: 'Messages', icon: 'chat' },
-  { to: '/dashboard/watchlist', label: 'Watchlist', icon: 'heart' },
-  { to: '/dashboard/earnings', label: 'Earnings', icon: 'inr' },
   { to: '/dashboard/profile', label: 'Profile Settings', icon: 'user' },
-  { to: '/dashboard/settings', label: 'Account Settings', icon: 'gear' },
-  { to: '/help', label: 'Help & Support', icon: 'help' },
 ];
 
 function Glyph({ name }) {
