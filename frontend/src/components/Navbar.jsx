@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Logo from './Logo.jsx';
 
@@ -8,14 +8,17 @@ export default function Navbar() {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const initial = (user?.name || 'A').charAt(0).toUpperCase();
+  const onApps = location.pathname.startsWith('/apps');
+  const searchPath = onApps ? '/apps' : '/websites';
 
   function onSearch(e) {
     e.preventDefault();
     const term = q.trim();
     setOpen(false);
-    navigate(`/websites${term ? `?q=${encodeURIComponent(term)}` : ''}`);
+    navigate(`${searchPath}${term ? `?q=${encodeURIComponent(term)}` : ''}`);
   }
 
   return (
@@ -37,26 +40,28 @@ export default function Navbar() {
           </NavLink>
         </nav>
         <form className="nav-search" onSubmit={onSearch}>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="2">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M20 20l-3.5-3.5" />
-          </svg>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search websites or apps..."
+            placeholder={onApps ? 'Search apps...' : 'Search websites or apps...'}
           />
+          <button type="submit" className="nav-search-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg>
+          </button>
         </form>
         <div className="nav-auth">
+          <button className="bell" type="button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#334155" strokeWidth="1.8">
+              <path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />
+              <path d="M10 19a2 2 0 0 0 4 0" />
+            </svg>
+            <i />
+          </button>
           {user ? (
             <>
-              <button className="bell" type="button" aria-label="Notifications">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#334155" strokeWidth="1.8">
-                  <path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />
-                  <path d="M10 19a2 2 0 0 0 4 0" />
-                </svg>
-                <i />
-              </button>
               <button className="user-chip" type="button" onClick={() => setMenu((v) => !v)}>
                 <span className="avatar sm">{initial}</span>
                 <span>

@@ -26,7 +26,7 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const order = ['PDF Tools Pro', 'Study Master', 'Travel Guide Blog', 'Expense Tracker'];
+  const order = ['TaskFlow Pro', 'Study Master', 'Travel Guide Blog', 'Expense Tracker'];
   const featured = listings
     .filter((l) => order.includes(l.name))
     .sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
