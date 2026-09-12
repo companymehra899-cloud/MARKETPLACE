@@ -175,7 +175,7 @@ export default function Home() {
             <p>Handpicked websites and Android apps with great potential.</p>
           </div>
           <div className="head-actions">
-            <Link to="/websites">View All →</Link>
+            <Link to="/websites">View All Listings →</Link>
             <button type="button" className="circle" onClick={() => setStart((s) => Math.max(0, s - 1))} aria-label="Previous">
               ‹
             </button>
@@ -185,8 +185,8 @@ export default function Home() {
           </div>
         </div>
         <div className="cards-4">
-          {visible.map((l, i) => (
-            <ListingCard key={l.id} listing={l} filled={i >= 2} />
+          {visible.map((l) => (
+            <ListingCard key={l.id} listing={l} />
           ))}
         </div>
       </section>
