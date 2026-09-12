@@ -2393,6 +2393,10 @@ main {
 }
 
 .offer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   height: 46px;
   font-size: 15px;
   margin-top: 0;

@@ -128,9 +128,6 @@ export default function ListingDetail() {
   const [related, setRelated] = useState([]);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('overview');
-  const [offerOpen, setOfferOpen] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [message, setMessage] = useState('');
   const [note, setNote] = useState('');
   const [shot, setShot] = useState(0);
   const [liked, setLiked] = useState(false);
@@ -142,7 +139,6 @@ export default function ListingDetail() {
     api(`/api/listings/${id}`)
       .then((d) => {
         setListing(d.listing);
-        setAmount(d.listing.price);
       })
       .catch((e) => setError(e.message));
     api('/api/listings')
@@ -154,26 +150,6 @@ export default function ListingDetail() {
     if (!listing) return [];
     return related.filter((l) => l.type === listing.type && l.id !== listing.id).slice(0, 4);
   }, [related, listing]);
-
-  async function submitOffer(e) {
-    e.preventDefault();
-    setNote('');
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    try {
-      await api(`/api/listings/${id}/offers`, {
-        method: 'POST',
-        body: JSON.stringify({ amount, message }),
-      });
-      setNote('Offer sent to the seller.');
-      setOfferOpen(false);
-      setMessage('');
-    } catch (err) {
-      setNote(err.message);
-    }
-  }
 
   async function save() {
     if (!user) {
@@ -389,14 +365,11 @@ export default function ListingDetail() {
 
         <aside className="ld-buy">
           <p className="ask-lg">{inr(listing.price)}</p>
-          <button className="btn btn-primary full offer-btn" type="button" onClick={() => setOfferOpen(true)}>
-            Make an Offer
-          </button>
-          <button className="ghost-btn full contact-btn" type="button" onClick={contact}>
+          <button className="btn btn-primary full offer-btn" type="button" onClick={contact}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
             </svg>
-            Contact Seller
+            Message / Contact Seller
           </button>
           <Link to="/dashboard/messages" className="seller-mini" onClick={contact}>
             <span className="avatar">{initials(listing.seller?.name).slice(0, 1)}</span>
@@ -552,20 +525,6 @@ export default function ListingDetail() {
         </section>
       )}
 
-      {offerOpen && (
-        <div className="modal" onClick={() => setOfferOpen(false)}>
-          <form className="modal-card" onClick={(e) => e.stopPropagation()} onSubmit={submitOffer}>
-            <h3>Make an Offer</h3>
-            <label>Amount (INR)</label>
-            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-            <label>Message</label>
-            <textarea rows="3" value={message} onChange={(e) => setMessage(e.target.value)} />
-            <button className="btn btn-primary full" type="submit">
-              Send Offer
-            </button>
-          </form>
-        </div>
-      )}
       {note && <div className="toast">{note}</div>}
     </div>
   );
