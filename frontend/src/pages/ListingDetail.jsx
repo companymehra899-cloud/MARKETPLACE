@@ -267,10 +267,16 @@ export default function ListingDetail() {
             ))}
           </div>
 
-          {(tab === 'overview' || tab === 'features') && (
+          {tab === 'overview' && (
             <section className="ld-block">
               <h2>Overview</h2>
               <p>{listing.description}</p>
+            </section>
+          )}
+
+          {tab === 'features' && (
+            <section className="ld-block">
+              <h2>Features</h2>
               <div className="split">
                 <div>
                   <h3>Key Features</h3>
@@ -288,7 +294,7 @@ export default function ListingDetail() {
             </section>
           )}
 
-          {(tab === 'overview' || tab === 'revenue') && (
+          {tab === 'revenue' && (
             <section className="ld-block">
               <h2>Revenue & Analytics</h2>
               <div className="rev-grid">
@@ -326,7 +332,7 @@ export default function ListingDetail() {
             </section>
           )}
 
-          {(tab === 'overview' || tab === 'technology') && (
+          {tab === 'technology' && (
             <section className="ld-block">
               <h2>Technology</h2>
               <div className="tech">
@@ -334,6 +340,33 @@ export default function ListingDetail() {
                   <span key={t}>{t}</span>
                 ))}
               </div>
+            </section>
+          )}
+
+          {tab === 'included' && (
+            <section className="ld-block">
+              <h2>What's Included</h2>
+              <p>{listing.included}</p>
+              {listing.support && <p>Support: {listing.support}</p>}
+            </section>
+          )}
+
+          {tab === 'faqs' && (
+            <section className="ld-block">
+              <h2>Faqs</h2>
+              <p>Is the source, domain, or Play Console access included in the asking price?</p>
+              <p>Yes. Transfer details are shared after the deal is confirmed.</p>
+              <p>Can I request extra documents?</p>
+              <p>Yes. Use Contact Seller for traffic, revenue, and ownership proof.</p>
+            </section>
+          )}
+
+          {tab === 'reviews' && (
+            <section className="ld-block">
+              <h2>Reviews</h2>
+              <p>
+                ★ {listing.rating}/5 from {listing.reviews} reviews
+              </p>
             </section>
           )}
         </div>
