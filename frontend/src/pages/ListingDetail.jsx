@@ -195,15 +195,6 @@ export default function ListingDetail() {
             </button>
           </div>
 
-          <div className="thumbs">
-            {['Home', 'Mock Tests', 'Performance', 'Study Notes', 'Current Affairs'].map((label, i) => (
-              <button key={label} className={shot === i ? 'on' : ''} type="button" onClick={() => setShot(i)}>
-                {label}
-              </button>
-            ))}
-            <span className="more-shots">+5 More Screenshots</span>
-          </div>
-
           <div className="ld-tabs">
             {['overview', 'features', 'revenue', 'technology', 'included', 'faqs', 'reviews'].map((t) => (
               <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
