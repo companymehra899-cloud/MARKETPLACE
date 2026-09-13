@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const LINKS = [
@@ -96,13 +96,13 @@ export default function SellerShell({ stats, children }) {
   return (
     <div className="seller-layout">
       <aside className="seller-side">
-        <div className="seller-user">
+        <Link to="/" className="seller-user">
           <span className="avatar">{initial}</span>
           <div>
             <strong>{user?.name}</strong>
             <small>Account</small>
           </div>
-        </div>
+        </Link>
         <nav className="seller-nav">
           {LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.to === '/dashboard'}>
