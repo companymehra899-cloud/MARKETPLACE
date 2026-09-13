@@ -280,7 +280,7 @@ app.post('/api/listings', auth, (req, res) => {
     listedOn,
     rating: 0,
     reviews: 0,
-    monetization: monetization === true || monetization === 'Yes' || monetization === 'yes' ? 'Yes' : 'No',
+    monetization: String(monetization == null ? '' : monetization).trim(),
     language: 'English',
     cover: 'generic',
     appSize: type === 'app' ? String(appSize || '').trim() || '—' : '',
@@ -337,7 +337,7 @@ app.patch('/api/listings/:id', auth, (req, res) => {
   if (techStack !== undefined) listing.techStack = parseTech(techStack);
   if (screenshots) listing.screenshots = sanitizeScreenshots(screenshots);
   if (monetization !== undefined) {
-    listing.monetization = monetization === true || monetization === 'Yes' || monetization === 'yes' ? 'Yes' : 'No';
+    listing.monetization = String(monetization == null ? '' : monetization).trim();
   }
   listing.contact = req.user.email;
   listing.phone = String(req.user.phone || '').trim();

@@ -178,7 +178,7 @@ function Listings({ listings, onPatch }) {
                 <p className="meta">
                   <span>{typeLabel(l.type)}</span>
                   <em>{l.category}</em>
-                  <em>Monetization: {l.monetization || 'No'}</em>
+                  <em>Monetization: {l.monetization || '—'}</em>
                 </p>
                 <div className="ml-metrics">
                   {isApp ? (

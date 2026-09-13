@@ -40,7 +40,7 @@ const empty = {
   description: '',
   techStack: '',
   liveUrl: '',
-  monetization: 'No',
+  monetization: '',
   appSize: '',
 };
 
@@ -127,7 +127,7 @@ export default function Sell() {
           description: l.description || '',
           techStack: Array.isArray(l.techStack) ? l.techStack.join(', ') : l.techStack || '',
           liveUrl: l.liveUrl || '',
-          monetization: l.monetization === 'Yes' || l.monetization === true ? 'Yes' : 'No',
+          monetization: String(l.monetization || ''),
           appSize: l.appSize && l.appSize !== '—' ? l.appSize : '',
         });
         setCustomCategory(known ? '' : l.category || '');
@@ -350,14 +350,11 @@ export default function Sell() {
                 </div>
                 <div>
                   <label>Monetization</label>
-                  <div className="type-cards yes-no">
-                    <button type="button" className={form.monetization === 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'Yes')}>
-                      Yes
-                    </button>
-                    <button type="button" className={form.monetization !== 'Yes' ? 'on' : ''} onClick={() => set('monetization', 'No')}>
-                      No
-                    </button>
-                  </div>
+                  <input
+                    value={form.monetization}
+                    onChange={(e) => set('monetization', e.target.value)}
+                    placeholder="Ads, Affiliates, SaaS..."
+                  />
                 </div>
               </div>
               <label>Live website URL</label>
