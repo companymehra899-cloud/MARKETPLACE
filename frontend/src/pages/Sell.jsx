@@ -33,7 +33,7 @@ const empty = {
   type: 'website',
   name: '',
   category: 'Tools & Utilities',
-  platform: 'Android',
+  platform: 'WordPress',
   price: '',
   monthlyRevenue: '',
   traffic: '',
@@ -79,6 +79,7 @@ const APP_CATS = [
 ];
 
 const APP_PLATFORMS = ['Android', 'Kotlin', 'Java', 'Flutter', 'React Native', 'Custom'];
+const WEB_PLATFORMS = ['WordPress', 'Shopify', 'Webflow', 'Custom'];
 
 export default function Sell() {
   const { id } = useParams();
@@ -125,7 +126,7 @@ export default function Sell() {
           type: l.type,
           name: l.name || '',
           category: l.category || empty.category,
-          platform: l.platform || (l.type === 'app' ? 'Android' : ''),
+          platform: l.platform || (l.type === 'app' ? 'Android' : 'WordPress'),
           price: l.price ?? '',
           monthlyRevenue: l.monthlyRevenue ?? '',
           traffic: l.traffic || '',
@@ -138,8 +139,9 @@ export default function Sell() {
           domainAge: l.domainAge && l.domainAge !== '—' ? l.domainAge : '',
         });
         setCustomCategory(known ? '' : l.category || '');
-        const knownPlat = APP_PLATFORMS.includes(l.platform);
-        setCustomPlatform(l.type === 'app' && l.platform && !knownPlat ? l.platform : '');
+        const platList = l.type === 'app' ? APP_PLATFORMS : WEB_PLATFORMS;
+        const knownPlat = platList.includes(l.platform);
+        setCustomPlatform(l.platform && !knownPlat ? l.platform : '');
         setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
       })
       .catch((e) => setError(e.message))
@@ -175,7 +177,7 @@ export default function Sell() {
     const payload = {
       ...form,
       category: customCategory.trim() || form.category,
-      platform: form.type === 'app' ? customPlatform.trim() || form.platform : form.platform,
+      platform: customPlatform.trim() || form.platform,
       screenshots: images.map((img) => img.url),
     };
     try {
@@ -196,6 +198,42 @@ export default function Sell() {
   const isApp = form.type === 'app';
   const cats = isApp ? APP_CATS : WEB_CATS;
   const descLen = form.description.length;
+  const platOptions = isApp ? APP_PLATFORMS : WEB_PLATFORMS;
+  const platFallback = isApp ? 'Android' : 'WordPress';
+
+  const platformField = (
+    <div>
+      <label>Platform</label>
+      <select
+        value={form.platform === 'Custom' || customPlatform ? 'Custom' : form.platform || platFallback}
+        onChange={(e) => {
+          if (e.target.value === 'Custom') {
+            setCustomPlatform('');
+            set('platform', 'Custom');
+          } else {
+            setCustomPlatform('');
+            set('platform', e.target.value);
+          }
+        }}
+      >
+        {platOptions.map((p) => (
+          <option key={p}>{p}</option>
+        ))}
+      </select>
+      {(form.platform === 'Custom' || customPlatform) && (
+        <input
+          className="custom-category"
+          value={customPlatform}
+          onChange={(e) => {
+            setCustomPlatform(e.target.value);
+            set('platform', e.target.value || 'Custom');
+          }}
+          placeholder="Enter your platform"
+          required
+        />
+      )}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -250,7 +288,7 @@ export default function Sell() {
               className={!isApp ? 'on' : ''}
               onClick={() => {
                 setCustomCategory('');
-                setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities', platform: '' }));
+                setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities', platform: 'WordPress' }));
                 setCustomPlatform('');
               }}
             >
@@ -316,37 +354,7 @@ export default function Sell() {
               )}
             </div>
             {isApp ? (
-              <div>
-                <label>Platform</label>
-                <select
-                  value={form.platform === 'Custom' || customPlatform ? 'Custom' : form.platform || 'Android'}
-                  onChange={(e) => {
-                    if (e.target.value === 'Custom') {
-                      setCustomPlatform('');
-                      set('platform', 'Custom');
-                    } else {
-                      setCustomPlatform('');
-                      set('platform', e.target.value);
-                    }
-                  }}
-                >
-                  {APP_PLATFORMS.map((p) => (
-                    <option key={p}>{p}</option>
-                  ))}
-                </select>
-                {(form.platform === 'Custom' || customPlatform) && (
-                  <input
-                    className="custom-category"
-                    value={customPlatform}
-                    onChange={(e) => {
-                      setCustomPlatform(e.target.value);
-                      set('platform', e.target.value || 'Custom');
-                    }}
-                    placeholder="Enter your platform"
-                    required
-                  />
-                )}
-              </div>
+              platformField
             ) : (
               <div>
                 <label>Domain age</label>
@@ -415,12 +423,17 @@ export default function Sell() {
                   />
                 </div>
               </div>
-              <label>Live website URL</label>
-              <input
-                value={form.liveUrl}
-                onChange={(e) => set('liveUrl', e.target.value)}
-                placeholder="https://example.com"
-              />
+              <div className="row">
+                <div>
+                  <label>Live website URL</label>
+                  <input
+                    value={form.liveUrl}
+                    onChange={(e) => set('liveUrl', e.target.value)}
+                    placeholder="https://example.com"
+                  />
+                </div>
+                {platformField}
+              </div>
             </>
           )}
 
