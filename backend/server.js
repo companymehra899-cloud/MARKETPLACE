@@ -44,7 +44,7 @@ const MAX_SHOT_CHARS = 220000;
 const FREE_LISTING_LIMIT = 3;
 const LISTING_PACK_PRICE = 100;
 const LISTING_PACK_SLOTS = 5;
-const UPI_ID = 'dealbazaar@oksbi';
+const UPI_ID = 'hhharishsingh@ybl';
 const UPI_NAME = 'NexMarket';
 
 function listingCountFor(userId) {
