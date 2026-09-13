@@ -251,11 +251,12 @@ app.post('/api/listings', auth, (req, res) => {
     description,
     techStack,
     screenshots,
-    liveUrl,
-    monetization,
-    appSize,
-    domainAge,
-  } = req.body || {};
+     liveUrl,
+     monetization,
+     appSize,
+     domainAge,
+     platform,
+   } = req.body || {};
   if (!type || !name || !price || !description) {
     return res.status(400).json({ error: 'Type, name, price and description required' });
   }
@@ -300,6 +301,7 @@ app.post('/api/listings', auth, (req, res) => {
     monetization: String(monetization == null ? '' : monetization).trim(),
     language: 'English',
     cover: 'generic',
+    platform: type === 'app' ? String(platform || '').trim() || 'Android' : String(platform || '').trim() || 'Web',
     appSize: type === 'app' ? String(appSize || '').trim() || '—' : '',
     minAndroid: type === 'app' ? 'Android 5.0+' : '',
     domainAge: type === 'website' ? String(domainAge || '').trim() || '—' : '',
@@ -331,11 +333,12 @@ app.patch('/api/listings/:id', auth, (req, res) => {
     description,
     techStack,
     screenshots,
-    liveUrl,
-    monetization,
-    appSize,
-    domainAge,
-  } = req.body || {};
+     liveUrl,
+     monetization,
+     appSize,
+     domainAge,
+     platform,
+   } = req.body || {};
   if (type && type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
   }
@@ -352,6 +355,10 @@ app.patch('/api/listings/:id', auth, (req, res) => {
     listing.domainAge = String(domainAge || '').trim() || '—';
   }
   if (listing.type !== 'website') listing.domainAge = '';
+  if (platform !== undefined) {
+    listing.platform =
+      listing.type === 'app' ? String(platform || '').trim() || 'Android' : String(platform || '').trim() || 'Web';
+  }
   if (description) {
     listing.description = String(description);
     listing.subtitle = String(description).slice(0, 140);

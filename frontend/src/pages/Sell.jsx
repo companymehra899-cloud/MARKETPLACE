@@ -33,6 +33,7 @@ const empty = {
   type: 'website',
   name: '',
   category: 'Tools & Utilities',
+  platform: 'Android',
   price: '',
   monthlyRevenue: '',
   traffic: '',
@@ -77,6 +78,8 @@ const APP_CATS = [
   'Custom',
 ];
 
+const APP_PLATFORMS = ['Android', 'Kotlin', 'Java', 'Flutter', 'React Native', 'Custom'];
+
 export default function Sell() {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -84,6 +87,7 @@ export default function Sell() {
   const [error, setError] = useState('');
   const [images, setImages] = useState([]);
   const [customCategory, setCustomCategory] = useState('');
+  const [customPlatform, setCustomPlatform] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(isEdit);
   const [limitReached, setLimitReached] = useState(false);
@@ -121,6 +125,7 @@ export default function Sell() {
           type: l.type,
           name: l.name || '',
           category: l.category || empty.category,
+          platform: l.platform || (l.type === 'app' ? 'Android' : ''),
           price: l.price ?? '',
           monthlyRevenue: l.monthlyRevenue ?? '',
           traffic: l.traffic || '',
@@ -133,6 +138,8 @@ export default function Sell() {
           domainAge: l.domainAge && l.domainAge !== '—' ? l.domainAge : '',
         });
         setCustomCategory(known ? '' : l.category || '');
+        const knownPlat = APP_PLATFORMS.includes(l.platform);
+        setCustomPlatform(l.type === 'app' && l.platform && !knownPlat ? l.platform : '');
         setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
       })
       .catch((e) => setError(e.message))
@@ -168,6 +175,7 @@ export default function Sell() {
     const payload = {
       ...form,
       category: customCategory.trim() || form.category,
+      platform: form.type === 'app' ? customPlatform.trim() || form.platform : form.platform,
       screenshots: images.map((img) => img.url),
     };
     try {
@@ -242,7 +250,8 @@ export default function Sell() {
               className={!isApp ? 'on' : ''}
               onClick={() => {
                 setCustomCategory('');
-                setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities' }));
+                setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities', platform: '' }));
+                setCustomPlatform('');
               }}
             >
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -256,7 +265,8 @@ export default function Sell() {
               className={isApp ? 'on' : ''}
               onClick={() => {
                 setCustomCategory('');
-                setForm((f) => ({ ...f, type: 'app', category: 'Education' }));
+                setForm((f) => ({ ...f, type: 'app', category: 'Education', platform: 'Android' }));
+                setCustomPlatform('');
               }}
             >
               <svg viewBox="0 0 24 24" width="22" height="22">
@@ -305,7 +315,39 @@ export default function Sell() {
                 />
               )}
             </div>
-            {!isApp && (
+            {isApp ? (
+              <div>
+                <label>Platform</label>
+                <select
+                  value={form.platform === 'Custom' || customPlatform ? 'Custom' : form.platform || 'Android'}
+                  onChange={(e) => {
+                    if (e.target.value === 'Custom') {
+                      setCustomPlatform('');
+                      set('platform', 'Custom');
+                    } else {
+                      setCustomPlatform('');
+                      set('platform', e.target.value);
+                    }
+                  }}
+                >
+                  {APP_PLATFORMS.map((p) => (
+                    <option key={p}>{p}</option>
+                  ))}
+                </select>
+                {(form.platform === 'Custom' || customPlatform) && (
+                  <input
+                    className="custom-category"
+                    value={customPlatform}
+                    onChange={(e) => {
+                      setCustomPlatform(e.target.value);
+                      set('platform', e.target.value || 'Custom');
+                    }}
+                    placeholder="Enter your platform"
+                    required
+                  />
+                )}
+              </div>
+            ) : (
               <div>
                 <label>Domain age</label>
                 <input
