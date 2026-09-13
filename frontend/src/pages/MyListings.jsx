@@ -61,15 +61,6 @@ export default function MyListings() {
           <h1>My Listings</h1>
           <p>Manage your website and Android app listings, view offers and track performance.</p>
         </div>
-        {stats?.listingLimit != null && stats.listingCount >= stats.listingLimit ? (
-          <span className="btn btn-outline" aria-disabled="true">
-            Free limit reached ({stats.listingCount}/{stats.listingLimit})
-          </span>
-        ) : (
-          <Link className="btn btn-primary" to="/sell">
-            + Add New Listing
-          </Link>
-        )}
       </div>
 
       <div className="ml-stats">

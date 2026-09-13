@@ -25,15 +25,6 @@ export default function Dashboard() {
           <h1>Dashboard</h1>
           <p>Snapshot of listings, offers and earnings.</p>
         </div>
-        {stats?.listingLimit != null && stats.listingCount >= stats.listingLimit ? (
-          <span className="btn btn-outline" aria-disabled="true">
-            Free limit reached ({stats.listingCount}/{stats.listingLimit})
-          </span>
-        ) : (
-          <Link className="btn btn-primary" to="/sell">
-            + Add New Listing
-          </Link>
-        )}
       </div>
       <div className="ml-stats">
         <div>
