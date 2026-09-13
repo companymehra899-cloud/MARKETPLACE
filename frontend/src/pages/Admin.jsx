@@ -30,13 +30,13 @@ function AdminShell({ children }) {
   return (
     <div className="seller-layout">
       <aside className="seller-side">
-        <div className="seller-user">
+        <Link to="/" className="seller-user">
           <span className="avatar">{initial}</span>
           <div>
             <strong>NEXMARKET ADMIN</strong>
             <small>{user?.name}</small>
           </div>
-        </div>
+        </Link>
         <nav className="seller-nav">
           {LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.end}>
