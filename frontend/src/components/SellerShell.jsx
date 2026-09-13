@@ -111,12 +111,6 @@ export default function SellerShell({ stats, children }) {
               {l.badgeKey && stats?.[l.badgeKey] ? <em>{stats[l.badgeKey]}</em> : null}
             </NavLink>
           ))}
-          {user?.role === 'admin' && (
-            <NavLink to="/dashboard/settings">
-              <Glyph name="gear" />
-              <span>Settings</span>
-            </NavLink>
-          )}
         </nav>
         <button
           className="logout-side"

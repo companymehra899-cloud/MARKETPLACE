@@ -71,23 +71,26 @@ export default function Navbar() {
               </button>
               {menu && (
                 <div className="user-menu">
-                  <NavLink to="/dashboard" onClick={() => setMenu(false)}>
-                    Dashboard
-                  </NavLink>
-                  <NavLink to="/dashboard/listings" onClick={() => setMenu(false)}>
-                    My Listings
-                  </NavLink>
-                  <NavLink to="/dashboard/profile" onClick={() => setMenu(false)}>
-                    Profile
-                  </NavLink>
-                  {user.role === 'admin' && (
+                  {user.role === 'admin' ? (
                     <NavLink to="/admin" onClick={() => setMenu(false)}>
                       Admin Panel
                     </NavLink>
+                  ) : (
+                    <>
+                      <NavLink to="/dashboard" onClick={() => setMenu(false)}>
+                        Dashboard
+                      </NavLink>
+                      <NavLink to="/dashboard/listings" onClick={() => setMenu(false)}>
+                        My Listings
+                      </NavLink>
+                      <NavLink to="/dashboard/profile" onClick={() => setMenu(false)}>
+                        Profile
+                      </NavLink>
+                      <NavLink to="/dashboard/settings" onClick={() => setMenu(false)}>
+                        Settings
+                      </NavLink>
+                    </>
                   )}
-                  <NavLink to="/dashboard/settings" onClick={() => setMenu(false)}>
-                    Settings
-                  </NavLink>
                   <button
                     type="button"
                     onClick={() => {

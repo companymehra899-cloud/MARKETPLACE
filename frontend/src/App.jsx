@@ -25,6 +25,7 @@ function Private({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <div className="page-loading">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'admin') return <Navigate to="/admin" replace />;
   return children;
 }
 
@@ -38,11 +39,11 @@ function AdminOnly({ children }) {
 
 export default function App() {
   const location = useLocation();
-  const hideFooter = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+  const hideChrome = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
 
   return (
     <div className="app-shell">
-      <Navbar />
+      {!hideChrome && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -171,7 +172,7 @@ export default function App() {
           <Route path="/contact" element={<Static kind="contact" />} />
         </Routes>
       </main>
-      {!hideFooter && <Footer />}
+      {!hideChrome && <Footer />}
     </div>
   );
 }

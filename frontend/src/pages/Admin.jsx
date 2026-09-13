@@ -30,7 +30,7 @@ function AdminShell({ children }) {
         <div className="seller-user">
           <span className="avatar">{initial}</span>
           <div>
-            <strong>NexMarket Admin</strong>
+            <strong>NEXMARKET ADMIN</strong>
             <small>{user?.name}</small>
           </div>
         </div>

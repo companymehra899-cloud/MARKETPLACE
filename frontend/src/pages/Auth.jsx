@@ -11,15 +11,14 @@ export default function Auth({ mode }) {
   const [error, setError] = useState('');
   const isLogin = mode === 'login';
 
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
 
   async function submit(e) {
     e.preventDefault();
     setError('');
     try {
-      if (isLogin) await login(email, password);
-      else await register(name, email, password);
-      navigate('/dashboard');
+      const next = isLogin ? await login(email, password) : await register(name, email, password);
+      navigate(next?.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
       setError(err.message);
     }
