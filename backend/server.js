@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { v4: uuid } = require('uuid');
-const { users, listings, offers, messages, watchlist, seed } = require('./data');
+const { users, listings, offers, messages, watchlist, reports, seed } = require('./data');
 
 seed();
 
@@ -20,6 +20,7 @@ function auth(req, res, next) {
   if (!userId) return res.status(401).json({ error: 'Login required' });
   req.user = users.find((u) => u.id === userId);
   if (!req.user) return res.status(401).json({ error: 'Invalid session' });
+  if (req.user.blocked) return res.status(403).json({ error: 'This account is blocked' });
   next();
 }
 
@@ -43,7 +44,7 @@ const MAX_SHOT_CHARS = 220000;
 const FREE_LISTING_LIMIT = 3;
 
 function listingCountFor(userId) {
-  return listings.filter((l) => l.sellerId === userId).length;
+  return listings.filter((l) => l.sellerId === userId && !l.removed).length;
 }
 
 function atFreeListingLimit(user) {
@@ -129,6 +130,7 @@ app.post('/api/auth/register', (req, res) => {
     password: String(password),
     role: 'user',
     verified: false,
+    blocked: false,
     phone: '',
     createdAt: new Date().toISOString(),
   };
@@ -147,6 +149,7 @@ app.post('/api/auth/login', (req, res) => {
     (u) => u.email.toLowerCase() === String(email || '').toLowerCase() && u.password === password
   );
   if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+  if (user.blocked) return res.status(403).json({ error: 'This account is blocked' });
   const token = uuid();
   tokens.set(token, user.id);
   res.json({
@@ -183,6 +186,7 @@ app.get('/api/listings', optionalAuth, (req, res) => {
   const { type, q, minPrice, maxPrice, category, sort, status } = req.query;
   const isAdmin = req.user && req.user.role === 'admin';
   let items = listings.filter((l) => {
+    if (l.removed) return false;
     if (l.hiddenPublic && !(req.user && req.user.id === l.sellerId)) return false;
     if (isAdmin && status) return l.status === status;
     if (!isAdmin) return l.status === 'approved';
@@ -214,7 +218,7 @@ app.get('/api/listings', optionalAuth, (req, res) => {
 
 app.get('/api/listings/:id', optionalAuth, (req, res) => {
   const listing = listings.find((l) => l.id === req.params.id);
-  if (!listing) return res.status(404).json({ error: 'Listing not found' });
+  if (!listing || listing.removed) return res.status(404).json({ error: 'Listing not found' });
   const isOwner = req.user && req.user.id === listing.sellerId;
   const isAdmin = req.user && req.user.role === 'admin';
   if (listing.status !== 'approved' && !isOwner && !isAdmin) {
@@ -355,7 +359,7 @@ app.patch('/api/listings/:id', auth, (req, res) => {
 
 app.get('/api/my/listings', auth, (req, res) => {
   const mine = listings
-    .filter((l) => l.sellerId === req.user.id)
+    .filter((l) => l.sellerId === req.user.id && !l.removed)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .map((l) => ({ ...publicListing(l, { includePrivate: true }), uiStatus: uiStatus(l.status) }));
   const stats = {
@@ -480,22 +484,21 @@ app.get('/api/my/offers', auth, (req, res) => {
 
 app.get('/api/admin/stats', auth, adminOnly, (_req, res) => {
   const accounts = users.filter((u) => u.role !== 'admin');
+  const visibleListings = listings.filter((l) => !l.removed);
   res.json({
     users: accounts.length,
-    listings: listings.length,
-    pending: listings.filter((l) => l.status === 'pending').length,
-    approved: listings.filter((l) => l.status === 'approved').length,
-    rejected: listings.filter((l) => l.status === 'rejected').length,
-    sold: listings.filter((l) => l.status === 'sold').length,
-    messages: messages.length,
-    atLimit: accounts.filter((u) => listingCountFor(u.id) >= FREE_LISTING_LIMIT).length,
-    listingLimit: FREE_LISTING_LIMIT,
+    listings: visibleListings.length,
+    pending: visibleListings.filter((l) => l.status === 'pending').length,
+    approved: visibleListings.filter((l) => l.status === 'approved').length,
+    rejected: visibleListings.filter((l) => l.status === 'rejected').length,
+    sold: visibleListings.filter((l) => l.status === 'sold').length,
+    reports: reports.length,
   });
 });
 
 app.get('/api/admin/listings', auth, adminOnly, (req, res) => {
   const { status } = req.query;
-  let items = listings;
+  let items = listings.filter((l) => !l.removed);
   if (status) items = items.filter((l) => l.status === status);
   res.json({
     listings: items
@@ -509,46 +512,59 @@ app.get('/api/admin/listings', auth, adminOnly, (req, res) => {
 
 app.patch('/api/admin/listings/:id', auth, adminOnly, (req, res) => {
   const listing = listings.find((l) => l.id === req.params.id);
-  if (!listing) return res.status(404).json({ error: 'Listing not found' });
-  const { status, featured } = req.body || {};
+  if (!listing || listing.removed) return res.status(404).json({ error: 'Listing not found' });
+  const { status, featured, removed } = req.body || {};
   if (status && ['approved', 'rejected', 'pending', 'sold'].includes(status)) {
     listing.status = status;
   }
   if (typeof featured === 'boolean') listing.featured = featured;
+  if (removed === true) listing.removed = true;
   listing.lastUpdated = listedOnNow();
   res.json({ listing: publicListing(listing, { includePrivate: true }), uiStatus: uiStatus(listing.status) });
 });
 
 app.get('/api/admin/users', auth, adminOnly, (_req, res) => {
   res.json({
-    users: users.map((u) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      phone: u.phone || '',
-      role: u.role,
-      verified: u.verified,
-      createdAt: u.createdAt,
-      listingCount: listingCountFor(u.id),
-      listingLimit: u.role === 'admin' ? null : FREE_LISTING_LIMIT,
-    })),
+    users: users
+      .filter((u) => u.role !== 'admin')
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        phone: u.phone || '',
+        blocked: Boolean(u.blocked),
+        createdAt: u.createdAt,
+        listingCount: listingCountFor(u.id),
+        listings: listings
+          .filter((l) => l.sellerId === u.id && !l.removed)
+          .map((l) => ({
+            id: l.id,
+            name: l.name,
+            type: l.type,
+            price: l.price,
+            status: l.status,
+            uiStatus: uiStatus(l.status),
+          })),
+      })),
   });
 });
 
-app.get('/api/admin/messages', auth, adminOnly, (_req, res) => {
+app.get('/api/admin/reports', auth, adminOnly, (_req, res) => {
   res.json({
-    messages: messages.map((m) => {
-      const listing = listings.find((l) => l.id === m.listingId);
-      const from = users.find((u) => u.id === m.fromId);
-      const to = users.find((u) => u.id === m.toId);
-      return {
-        ...m,
-        listingName: listing ? listing.name : 'Listing',
-        fromName: from ? from.name : 'User',
-        toName: to ? to.name : 'User',
-        fromEmail: from ? from.email : '',
-      };
-    }),
+    reports: reports
+      .slice()
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map((r) => {
+        const listing = listings.find((l) => l.id === r.listingId);
+        const from = users.find((u) => u.id === r.fromId);
+        return {
+          ...r,
+          listingName: listing ? listing.name : 'Listing',
+          listingRemoved: Boolean(listing && listing.removed),
+          fromName: from ? from.name : 'User',
+          fromEmail: from ? from.email : '',
+        };
+      }),
   });
 });
 
@@ -556,7 +572,7 @@ app.patch('/api/admin/users/:id', auth, adminOnly, (req, res) => {
   const user = users.find((u) => u.id === req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   if (user.role === 'admin') return res.status(400).json({ error: 'Cannot change admin account' });
-  if (typeof req.body.verified === 'boolean') user.verified = req.body.verified;
+  if (typeof req.body.blocked === 'boolean') user.blocked = req.body.blocked;
   res.json({ user: publicUser(user) });
 });
 

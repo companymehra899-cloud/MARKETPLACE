@@ -1850,6 +1850,23 @@ main {
   margin-bottom: 18px;
 }
 
+.admin-stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.admin-stats .dot.purple {
+  width: 8px;
+  height: 8px;
+  background: #7c3aed;
+  color: transparent;
+}
+
+.admin-user-listings {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
 .ml-stats > div {
   background: #fff;
   border: 1px solid #e8eef7;

@@ -156,7 +156,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/messages"
+            path="/admin/reports"
             element={
               <AdminOnly>
                 <Admin />

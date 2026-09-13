@@ -192,6 +192,7 @@ export function ProfilePage() {
 
 export function SettingsPage() {
   const stats = useMine();
+  const { user } = useAuth();
   return (
     <SellerShell stats={stats}>
       <div className="ml-head">
@@ -203,6 +204,11 @@ export function SettingsPage() {
       <div className="panel" style={{ maxWidth: 520 }}>
         <p>Email alerts for new offers: On</p>
         <p>Email alerts for messages: On</p>
+        {user?.role === 'admin' && (
+          <p>
+            <Link to="/admin">Admin Panel</Link>
+          </p>
+        )}
       </div>
     </SellerShell>
   );

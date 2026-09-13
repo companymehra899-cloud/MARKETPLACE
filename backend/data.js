@@ -5,6 +5,7 @@ const listings = [];
 const offers = [];
 const messages = [];
 const watchlist = [];
+const reports = [];
 
 function seed() {
   if (users.length) return;
@@ -16,6 +17,7 @@ function seed() {
     password: 'admin123',
     role: 'admin',
     verified: true,
+    blocked: false,
     phone: '9876543210',
     createdAt: '2022-01-10T00:00:00.000Z',
   };
@@ -26,6 +28,7 @@ function seed() {
     password: 'seller123',
     role: 'user',
     verified: true,
+    blocked: false,
     phone: '9811122233',
     rating: 4.9,
     reviews: 18,
@@ -39,6 +42,7 @@ function seed() {
     password: 'seller123',
     role: 'user',
     verified: true,
+    blocked: false,
     phone: '9822233344',
     rating: 4.8,
     reviews: 24,
@@ -52,6 +56,7 @@ function seed() {
     password: 'seller123',
     role: 'user',
     verified: true,
+    blocked: false,
     phone: '9833344455',
     rating: 4.7,
     reviews: 9,
@@ -65,6 +70,7 @@ function seed() {
     password: 'buyer123',
     role: 'user',
     verified: false,
+    blocked: false,
     phone: '9844455566',
     createdAt: new Date().toISOString(),
   };
@@ -1097,6 +1103,15 @@ function seed() {
       createdAt: new Date().toISOString(),
     }
   );
+
+  reports.push({
+    id: uuid(),
+    listingId: 'travel-guide-blog',
+    fromId: arjun.id,
+    targetType: 'listing',
+    reason: 'Asking price looks inflated',
+    createdAt: new Date().toISOString(),
+  });
 }
 
-module.exports = { users, listings, offers, messages, watchlist, seed };
+module.exports = { users, listings, offers, messages, watchlist, reports, seed };
