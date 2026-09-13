@@ -51,6 +51,26 @@ function persistSoon() {
   }, 150);
 }
 
+const DEMO_EMAILS = new Set([
+  'ravi@seller.in',
+  'arjun@buyer.in',
+  'anand@seller.in',
+  'rahul@seller.in',
+]);
+
+function stripDemoAccounts() {
+  const demoIds = new Set(users.filter((u) => DEMO_EMAILS.has(u.email)).map((u) => u.id));
+  if (!demoIds.size) return false;
+  replace(users, users.filter((u) => !demoIds.has(u.id)));
+  replace(listings, listings.filter((l) => !demoIds.has(l.sellerId)));
+  replace(offers, offers.filter((o) => !demoIds.has(o.buyerId) && !demoIds.has(o.sellerId)));
+  replace(messages, messages.filter((m) => !demoIds.has(m.fromId) && !demoIds.has(m.toId)));
+  replace(watchlist, watchlist.filter((w) => !demoIds.has(w.userId)));
+  replace(reports, reports.filter((r) => !demoIds.has(r.fromId)));
+  replace(payments, payments.filter((p) => !demoIds.has(p.userId)));
+  return true;
+}
+
 async function connectAndLoad() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -73,7 +93,10 @@ async function connectAndLoad() {
   if (!hasData) {
     seed();
     await persist();
-    console.log('MongoDB empty. Seeded demo data.');
+    console.log('MongoDB empty. Seeded admin account.');
+  } else if (stripDemoAccounts()) {
+    await persist();
+    console.log('MongoDB connected. Removed demo accounts.');
   } else {
     console.log('MongoDB connected. Loaded saved data.');
   }

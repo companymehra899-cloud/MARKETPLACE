@@ -21,7 +21,7 @@ const COPY = {
     body: [
       'Listings go live after admin approval. Pending items stay in your dashboard.',
       'Offers are sent to the seller with your message and amount.',
-      'One login for buying and selling. Demo: ravi@seller.in / seller123 or arjun@buyer.in / buyer123. Free accounts can list 3 projects.',
+      'One login for buying and selling. Free accounts can list 3 projects.',
     ],
   },
   safety: {
@@ -44,10 +44,10 @@ const COPY = {
   },
   privacy: {
     title: 'Privacy Policy',
-    sub: 'How we handle account data on this demo.',
+    sub: 'How we handle account data.',
     body: [
-      'We store name, email, and listing details in memory for this MVP.',
-      'Passwords are demo-only. Do not use real credentials.',
+      'We store name, email, and listing details for your account.',
+      'Keep your password private and do not share login details.',
       'Offers are visible to the buyer, seller, and admin.',
     ],
   },
