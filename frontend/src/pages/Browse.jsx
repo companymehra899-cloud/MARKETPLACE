@@ -82,6 +82,31 @@ function daysAgo(dateStr) {
   return (Date.now() - t) / 86400000;
 }
 
+function parseYears(value) {
+  if (!value || value === '—') return 0;
+  const num = parseFloat(String(value).replace(/[^0-9.]/g, ''));
+  return Number.isFinite(num) ? num : 0;
+}
+
+function parseSizeMb(value) {
+  if (!value || value === '—') return 0;
+  const num = parseFloat(String(value).replace(/[^0-9.]/g, ''));
+  return Number.isFinite(num) ? num : 0;
+}
+
+const MONETIZATION_PRESETS = [
+  { value: 'Ads', label: 'Ads' },
+  { value: 'Affiliate', label: 'Affiliates' },
+  { value: 'SaaS', label: 'SaaS' },
+  { value: 'Product', label: 'Product sales' },
+];
+const MONETIZATION_VALUES = MONETIZATION_PRESETS.map((item) => item.value);
+const CUSTOM_MONETIZATION = '__custom__';
+
+function isCustomMonetization(value) {
+  return Boolean(value) && value !== CUSTOM_MONETIZATION && !MONETIZATION_VALUES.includes(value);
+}
+
 export default function Browse({ type }) {
   const [params, setParams] = useSearchParams();
   const [listings, setListings] = useState([]);
@@ -104,6 +129,11 @@ export default function Browse({ type }) {
   const downloads = params.get('downloads') || '';
   const revRange = params.get('revRange') || '';
   const updated = params.get('updated') || '';
+  const domainAge = params.get('domainAge') || '';
+  const appSize = params.get('appSize') || '';
+  const monetizationIsCustom = monetization === CUSTOM_MONETIZATION || isCustomMonetization(monetization);
+  const [customMonetizationOpen, setCustomMonetizationOpen] = useState(monetizationIsCustom);
+  const [draftMonetization, setDraftMonetization] = useState(isCustomMonetization(monetization) ? monetization : '');
 
   const isApp = type === 'app';
   const cats = isApp ? APP_CATS : WEB_CATS;
@@ -114,6 +144,12 @@ export default function Browse({ type }) {
     setDraftQ(q);
     setPage(1);
   }, [type, q, category, sort]);
+
+  useEffect(() => {
+    const isCustom = monetization === CUSTOM_MONETIZATION || isCustomMonetization(monetization);
+    setCustomMonetizationOpen(isCustom);
+    setDraftMonetization(isCustomMonetization(monetization) ? monetization : '');
+  }, [monetization, type]);
 
   const query = useMemo(() => {
     const p = new URLSearchParams();
@@ -160,10 +196,15 @@ export default function Browse({ type }) {
         if (minTraffic && traffic < Number(minTraffic)) return false;
         if (maxTraffic && traffic > Number(maxTraffic)) return false;
         if (platform && (item.platform || '').toLowerCase() !== platform.toLowerCase()) return false;
-        if (monetization) {
+        if (monetization && monetization !== CUSTOM_MONETIZATION) {
           const text = String(item.monetization || '').toLowerCase();
           if (!text.includes(monetization.toLowerCase())) return false;
         }
+        const age = parseYears(item.domainAge);
+        if (domainAge === '1' && age < 1) return false;
+        if (domainAge === '2' && age < 2) return false;
+        if (domainAge === '3' && age < 3) return false;
+        if (domainAge === '5' && age < 5) return false;
       } else {
         const dl = parseDownloads(item.downloads);
         if (downloads === '10k' && dl < 10000) return false;
@@ -176,6 +217,15 @@ export default function Browse({ type }) {
         if (updated === '30' && daysAgo(item.lastUpdated || item.createdAt) > 30) return false;
         if (updated === '90' && daysAgo(item.lastUpdated || item.createdAt) > 90) return false;
         if (updated === '365' && daysAgo(item.lastUpdated || item.createdAt) > 365) return false;
+        if (monetization && monetization !== CUSTOM_MONETIZATION) {
+          const text = String(item.monetization || '').toLowerCase();
+          if (!text.includes(monetization.toLowerCase())) return false;
+        }
+        const size = parseSizeMb(item.appSize);
+        if (appSize === '10' && size > 10) return false;
+        if (appSize === '20' && (size <= 10 || size > 20)) return false;
+        if (appSize === '50' && (size <= 20 || size > 50)) return false;
+        if (appSize === '50plus' && size <= 50) return false;
       }
       return true;
     });
@@ -200,11 +250,13 @@ export default function Browse({ type }) {
     minTraffic,
     maxTraffic,
     platform,
-    monetization,
-    downloads,
-    revRange,
-    updated,
-  ]);
+      monetization,
+      downloads,
+      revRange,
+      updated,
+      domainAge,
+      appSize,
+    ]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -233,7 +285,9 @@ export default function Browse({ type }) {
       monetization ||
       downloads ||
       revRange ||
-      updated
+      updated ||
+      domainAge ||
+      appSize
   );
 
   return (
@@ -369,6 +423,50 @@ export default function Browse({ type }) {
                   <option value="365">Last year</option>
                 </select>
               </div>
+              <div className="filter-block">
+                <label className="filter-label">App Size</label>
+                <select value={appSize} onChange={(e) => update('appSize', e.target.value)}>
+                  <option value="">Any Size</option>
+                  <option value="10">Under 10 MB</option>
+                  <option value="20">10–20 MB</option>
+                  <option value="50">20–50 MB</option>
+                  <option value="50plus">50 MB+</option>
+                </select>
+              </div>
+              <div className="filter-block">
+                <label className="filter-label">Monetization</label>
+                <select
+                  value={customMonetizationOpen ? 'Custom' : monetization}
+                  onChange={(e) => {
+                    if (e.target.value === 'Custom') {
+                      setCustomMonetizationOpen(true);
+                      setDraftMonetization('');
+                      update('monetization', CUSTOM_MONETIZATION);
+                    } else {
+                      setCustomMonetizationOpen(false);
+                      setDraftMonetization('');
+                      update('monetization', e.target.value);
+                    }
+                  }}
+                >
+                  <option value="">All Types</option>
+                  {MONETIZATION_PRESETS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                  <option value="Custom">Custom</option>
+                </select>
+                {customMonetizationOpen && (
+                  <input
+                    className="filter-custom"
+                    value={draftMonetization}
+                    onChange={(e) => setDraftMonetization(e.target.value)}
+                    onBlur={(e) => update('monetization', e.target.value.trim() || CUSTOM_MONETIZATION)}
+                    placeholder="Enter monetization type"
+                  />
+                )}
+              </div>
             </>
           ) : (
             <>
@@ -422,12 +520,46 @@ export default function Browse({ type }) {
               </div>
               <div className="filter-block">
                 <label className="filter-label">Monetization</label>
-                <select value={monetization} onChange={(e) => update('monetization', e.target.value)}>
+                <select
+                  value={customMonetizationOpen ? 'Custom' : monetization}
+                  onChange={(e) => {
+                    if (e.target.value === 'Custom') {
+                      setCustomMonetizationOpen(true);
+                      setDraftMonetization('');
+                      update('monetization', CUSTOM_MONETIZATION);
+                    } else {
+                      setCustomMonetizationOpen(false);
+                      setDraftMonetization('');
+                      update('monetization', e.target.value);
+                    }
+                  }}
+                >
                   <option value="">All Types</option>
-                  <option value="Ads">Ads</option>
-                  <option value="Affiliate">Affiliates</option>
-                  <option value="SaaS">SaaS</option>
-                  <option value="Product">Product sales</option>
+                  {MONETIZATION_PRESETS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                  <option value="Custom">Custom</option>
+                </select>
+                {customMonetizationOpen && (
+                  <input
+                    className="filter-custom"
+                    value={draftMonetization}
+                    onChange={(e) => setDraftMonetization(e.target.value)}
+                    onBlur={(e) => update('monetization', e.target.value.trim() || CUSTOM_MONETIZATION)}
+                    placeholder="Enter monetization type"
+                  />
+                )}
+              </div>
+              <div className="filter-block">
+                <label className="filter-label">Domain Age</label>
+                <select value={domainAge} onChange={(e) => update('domainAge', e.target.value)}>
+                  <option value="">Any Age</option>
+                  <option value="1">1 year+</option>
+                  <option value="2">2 years+</option>
+                  <option value="3">3 years+</option>
+                  <option value="5">5 years+</option>
                 </select>
               </div>
             </>

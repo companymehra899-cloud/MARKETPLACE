@@ -2906,13 +2906,18 @@ main {
 }
 
 .filter-pair input,
-.filter-block select {
+.filter-block select,
+.filter-custom {
   width: 100%;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 9px 10px;
   font-size: 13px;
   background: #fff;
+}
+
+.filter-custom {
+  margin-top: 8px;
 }
 
 .clear-filters {
