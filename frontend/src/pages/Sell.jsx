@@ -266,22 +266,11 @@ export default function Sell() {
           <p className="sell-sub">
             {isEdit ? 'Update your website or Android app listing' : 'List your website or Android app'}
           </p>
-          {isEdit ? (
-            <p className="sell-desc">
-              Changes save to your dashboard. Pending listings stay off the public catalog until admin approval.
-            </p>
-          ) : (
-            <p className="sell-desc">
-              Reach thousands of potential buyers.
-              <br />
-              Free accounts can list up to {listingLimit} projects.
-            </p>
-          )}
-          {!isEdit && listingLimit != null && (
-            <p className="sell-quota">
-              {listingCount} of {listingLimit} listings used.
-            </p>
-          )}
+          <p className="sell-desc">
+            {isEdit
+              ? 'Changes save to your dashboard. Pending listings stay off the public catalog until admin approval.'
+              : `Reach thousands of potential buyers. Free accounts can list up to ${listingLimit} projects.`}
+          </p>
           {!isEdit && limitReached && (
             <p className="error">
               Free plan is full. Pay ₹100 to add 5 more listings.
@@ -289,18 +278,25 @@ export default function Sell() {
             </p>
           )}
         </div>
-        <div className="sell-reach">
-          <div className="reach-win">
-            <span className="reach-dots">
-              <i />
-              <i />
-              <i />
-            </span>
-            <span className="reach-ico">↑</span>
-          </div>
-          <div>
-            <strong>Reach the Right Buyers</strong>
-            <small>List once, get noticed.</small>
+        <div className="sell-head-right">
+          {!isEdit && listingLimit != null && (
+            <p className="sell-quota">
+              {listingCount} of {listingLimit} listings used.
+            </p>
+          )}
+          <div className="sell-reach">
+            <div className="reach-win">
+              <span className="reach-dots">
+                <i />
+                <i />
+                <i />
+              </span>
+              <span className="reach-ico">↑</span>
+            </div>
+            <div>
+              <strong>Reach the Right Buyers</strong>
+              <small>List once, get noticed.</small>
+            </div>
           </div>
         </div>
       </header>

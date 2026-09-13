@@ -1187,8 +1187,8 @@ main {
 .sell-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 24px;
+  align-items: flex-start;
+  gap: 32px;
   margin-bottom: 22px;
 }
 
@@ -1215,19 +1215,30 @@ main {
 }
 
 .sell-desc {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   color: #64748b;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.45;
   font-weight: 400;
+  white-space: nowrap;
+}
+
+.sell-head-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  flex-shrink: 0;
+  padding-top: 4px;
 }
 
 .sell-quota {
-  margin: 8px 0 0;
+  margin: 0;
   color: #64748b;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.4;
-  font-weight: 400;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .sell-head p {
@@ -1238,7 +1249,6 @@ main {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-width: 280px;
 }
 
 .sell-reach strong {
