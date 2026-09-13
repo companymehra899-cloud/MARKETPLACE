@@ -1179,6 +1179,28 @@ main {
   box-shadow: var(--shadow);
 }
 
+.forgot-link,
+.text-link {
+  border: 0;
+  background: transparent;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  margin: 4px 0 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.otp-show {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 14px;
+}
+
 .sell-page {
   background: #f5f8fc;
   padding-top: 28px;

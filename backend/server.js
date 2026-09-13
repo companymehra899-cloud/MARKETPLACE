@@ -14,6 +14,7 @@ app.use(express.json({ limit: '2mb' }));
 app.use(persistMiddleware);
 
 const tokens = new Map();
+const otps = new Map();
 
 function auth(req, res, next) {
   const header = req.headers.authorization || '';
@@ -254,6 +255,40 @@ app.patch('/api/auth/password', auth, (req, res) => {
     return res.status(400).json({ error: 'New password must be at least 6 characters' });
   }
   req.user.password = newPassword;
+  res.json({ ok: true });
+});
+
+app.post('/api/auth/forgot-password', (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  const user = users.find((u) => u.email.toLowerCase() === email);
+  if (!user) return res.status(404).json({ error: 'No account found with this email' });
+  if (user.blocked) return res.status(403).json({ error: 'This account is blocked' });
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  otps.set(email, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
+  res.json({ ok: true, otp: code, message: 'OTP generated. It is valid for 10 minutes.' });
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const otp = String(req.body?.otp || '').trim();
+  const newPassword = String(req.body?.newPassword || '');
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ error: 'Email, OTP and new password required' });
+  }
+  const record = otps.get(email);
+  if (!record || record.expiresAt < Date.now()) {
+    otps.delete(email);
+    return res.status(400).json({ error: 'OTP expired. Request a new one.' });
+  }
+  if (record.code !== otp) return res.status(400).json({ error: 'Invalid OTP' });
+  const user = users.find((u) => u.email.toLowerCase() === email);
+  if (!user) return res.status(404).json({ error: 'No account found with this email' });
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+  user.password = newPassword;
+  otps.delete(email);
   res.json({ ok: true });
 });
 
