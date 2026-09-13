@@ -1192,19 +1192,45 @@ main {
   margin-bottom: 22px;
 }
 
+.sell-head-copy {
+  max-width: 560px;
+}
+
 .sell-head h1 {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 36px;
+  line-height: 1.15;
   letter-spacing: -0.03em;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.sell-sub {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.sell-desc {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.sell-quota {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 400;
 }
 
 .sell-head p {
-  margin: 0;
   color: var(--muted);
-}
-
-.sell-head .lede {
-  margin-top: 6px;
 }
 
 .sell-reach {

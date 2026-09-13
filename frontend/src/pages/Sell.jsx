@@ -261,16 +261,18 @@ export default function Sell() {
   return (
     <PageLayout className="sell-page">
       <header className="sell-head">
-        <div>
+        <div className="sell-head-copy">
           <h1>{isEdit ? 'Edit listing' : 'Sell Your Project'}</h1>
-          <p>{isEdit ? 'Update your website or Android app listing' : 'List your website or Android app'}</p>
-          <p className="lede">
+          <p className="sell-sub">
+            {isEdit ? 'Update your website or Android app listing' : 'List your website or Android app'}
+          </p>
+          <p className="sell-desc">
             {isEdit
               ? 'Changes save to your dashboard. Pending listings stay off the public catalog until admin approval.'
               : `Reach thousands of potential buyers. Free accounts can list up to ${listingLimit} projects.`}
           </p>
           {!isEdit && listingLimit != null && (
-            <p className="lede">
+            <p className="sell-quota">
               {listingCount} of {listingLimit} listings used.
             </p>
           )}
