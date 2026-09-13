@@ -32,7 +32,7 @@ export default function Auth({ mode }) {
         <p className="lede">
           {isLogin
             ? 'One account to buy and sell websites and Android apps.'
-            : 'Create one account to buy or sell websites and Android apps. Free plan includes 3 listings.'}
+            : 'Create one account to buy or sell websites and Android apps. Free plan includes 3 listings. Extra 5 listings cost ₹100.'}
         </p>
         <form className="form" onSubmit={submit}>
           {!isLogin && (

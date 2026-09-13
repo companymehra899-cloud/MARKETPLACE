@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import PageLayout from '../components/PageLayout.jsx';
+import ListingPackModal from '../components/ListingPackModal.jsx';
 
 const MAX_SHOTS = 2;
 const MAX_EDGE = 900;
@@ -94,6 +95,8 @@ export default function Sell() {
   const [limitReached, setLimitReached] = useState(false);
   const [listingCount, setListingCount] = useState(0);
   const [listingLimit, setListingLimit] = useState(3);
+  const [pack, setPack] = useState(null);
+  const [showPay, setShowPay] = useState(false);
   const fileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -101,17 +104,24 @@ export default function Sell() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  useEffect(() => {
-    if (id) return;
-    api('/api/my/listings')
-      .then((d) => {
+  function refreshQuota() {
+    return Promise.all([api('/api/my/listings'), api('/api/payments/pack')])
+      .then(([d, p]) => {
         const count = d.stats?.listingCount ?? (d.listings || []).length;
         const limit = d.stats?.listingLimit ?? 3;
+        const reached = limit != null && count >= limit;
         setListingCount(count);
         setListingLimit(limit);
-        setLimitReached(limit != null && count >= limit);
+        setLimitReached(reached);
+        setPack(p);
+        setShowPay(reached);
       })
       .catch(() => {});
+  }
+
+  useEffect(() => {
+    if (id) return;
+    refreshQuota();
   }, [id]);
 
   useEffect(() => {
@@ -190,6 +200,11 @@ export default function Sell() {
       }
     } catch (err) {
       setError(err.message);
+      if (!isEdit) {
+        setLimitReached(true);
+        setShowPay(true);
+        refreshQuota();
+      }
     } finally {
       setBusy(false);
     }
@@ -254,13 +269,16 @@ export default function Sell() {
               ? 'Changes save to your dashboard. Pending listings stay off the public catalog until admin approval.'
               : `Reach thousands of potential buyers. Free accounts can list up to ${listingLimit} projects.`}
           </p>
-          {!isEdit && !limitReached && listingLimit != null && (
+          {!isEdit && listingLimit != null && (
             <p className="lede">
-              {listingCount} of {listingLimit} free listings used.
+              {listingCount} of {listingLimit} listings used.
             </p>
           )}
           {!isEdit && limitReached && (
-            <p className="error">Free plan allows {listingLimit} listings per account.</p>
+            <p className="error">
+              Free plan is full. Pay ₹100 to add 5 more listings.
+              {pack?.pendingPayment ? ' Your UTR is under admin review.' : ''}
+            </p>
           )}
         </div>
         <div className="sell-reach">
@@ -510,6 +528,11 @@ export default function Sell() {
             placeholder="React, Node.js, MongoDB"
           />
           {error && <p className="error">{error}</p>}
+          {!isEdit && limitReached && (
+            <button className="btn btn-primary sell-submit" type="button" onClick={() => setShowPay(true)}>
+              Pay ₹100 for 5 listings
+            </button>
+          )}
           <button className="btn btn-primary sell-submit" type="submit" disabled={busy || loading || (!isEdit && limitReached)}>
             {busy ? 'Saving...' : isEdit ? 'Save changes' : limitReached ? 'Listing limit reached' : 'List Your Project →'}
           </button>
@@ -547,6 +570,16 @@ export default function Sell() {
           </div>
         </aside>
       </div>
+      {showPay && pack && (
+        <ListingPackModal
+          pack={pack}
+          onClose={() => setShowPay(false)}
+          onSubmitted={() => {
+            refreshQuota();
+            setShowPay(true);
+          }}
+        />
+      )}
     </PageLayout>
   );
 }

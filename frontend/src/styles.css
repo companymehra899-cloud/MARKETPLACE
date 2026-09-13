@@ -3514,5 +3514,82 @@ main {
   color: #b91c1c;
 }
 
+.st.pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.admin-pay {
+  grid-template-columns: 1.6fr 0.7fr auto;
+}
+
+.pay-modal .pay-card {
+  width: 460px;
+  position: relative;
+  gap: 10px;
+}
+
+.pay-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.pay-qr {
+  width: 220px;
+  height: 220px;
+  margin: 8px auto 0;
+  display: block;
+  border: 1px solid #e8eef7;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.pay-upi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e8eef7;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.pay-upi small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pay-upi strong {
+  display: block;
+  margin-top: 2px;
+  user-select: all;
+}
+
+.pay-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pay-pending {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.pay-pending p {
+  margin: 6px 0 0;
+}
+
 @media (max-width: 1100px) {
 }

@@ -16,6 +16,7 @@ const LINKS = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/listings', label: 'Listings' },
   { to: '/admin/users', label: 'Users' },
+  { to: '/admin/payments', label: 'Payments' },
   { to: '/admin/messages', label: 'Messages' },
   { to: '/admin/reports', label: 'Reports' },
 ];
@@ -291,6 +292,82 @@ function Messages({ messages }) {
   );
 }
 
+function Payments({ payments, onReview }) {
+  const [tab, setTab] = useState('pending');
+  const visible = useMemo(() => {
+    if (tab === 'all') return payments;
+    return payments.filter((p) => p.status === tab);
+  }, [payments, tab]);
+  const counts = {
+    all: payments.length,
+    pending: payments.filter((p) => p.status === 'pending').length,
+    approved: payments.filter((p) => p.status === 'approved').length,
+    rejected: payments.filter((p) => p.status === 'rejected').length,
+  };
+
+  return (
+    <>
+      <div className="ml-head">
+        <div>
+          <h1>Payments</h1>
+          <p>Check UTR and payment profile name, then approve ₹100 packs for 5 extra listings.</p>
+        </div>
+      </div>
+      <div className="ml-tabs">
+        {[
+          { id: 'pending', label: 'Pending' },
+          { id: 'approved', label: 'Approved' },
+          { id: 'rejected', label: 'Rejected' },
+          { id: 'all', label: 'All' },
+        ].map((t) => (
+          <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
+            {t.label} ({counts[t.id] || 0})
+          </button>
+        ))}
+      </div>
+      <div className="ml-list">
+        {visible.map((p) => (
+          <article key={p.id} className="ml-row admin-pay">
+            <div className="ml-info">
+              <h3>{p.user?.name || 'User'}</h3>
+              <p className="meta">
+                <span>{p.user?.email}</span>
+                {p.user?.phone ? <em>{p.user.phone}</em> : null}
+                <em>
+                  {p.user?.listingCount || 0}/{p.user?.listingLimit || 3} listings
+                </em>
+              </p>
+              <p className="meta">
+                <span>UTR {p.utr}</span>
+                <em>{p.payerName}</em>
+                <em>₹{p.amount}</em>
+                <em>{p.slots} listings</em>
+              </p>
+            </div>
+            <div className="ml-price">
+              <span className={`st ${p.status}`}>{p.status}</span>
+              <small>{new Date(p.createdAt).toLocaleString('en-IN')}</small>
+            </div>
+            <div className="ml-actions">
+              {p.status === 'pending' && (
+                <>
+                  <button className="ghost-btn" type="button" onClick={() => onReview(p.id, 'approved')}>
+                    Approve
+                  </button>
+                  <button className="ghost-btn" type="button" onClick={() => onReview(p.id, 'rejected')}>
+                    Reject
+                  </button>
+                </>
+              )}
+            </div>
+          </article>
+        ))}
+        {visible.length === 0 && <p className="empty">No payments in this tab.</p>}
+      </div>
+    </>
+  );
+}
+
 function Reports({ reports }) {
   return (
     <>
@@ -327,21 +404,24 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [payments, setPayments] = useState([]);
   const { pathname } = useLocation();
 
   async function load() {
-    const [s, l, u, r, m] = await Promise.all([
+    const [s, l, u, r, m, p] = await Promise.all([
       api('/api/admin/stats'),
       api('/api/admin/listings'),
       api('/api/admin/users'),
       api('/api/admin/reports'),
       api('/api/admin/messages'),
+      api('/api/admin/payments'),
     ]);
     setStats(s);
     setListings(l.listings || []);
     setUsers(u.users || []);
     setReports(r.reports || []);
     setMessages((m.messages || []).filter((item) => item.kind === 'support'));
+    setPayments(p.payments || []);
   }
 
   useEffect(() => {
@@ -358,9 +438,15 @@ export default function Admin() {
     load();
   }
 
+  async function reviewPayment(id, status) {
+    await api(`/api/admin/payments/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    load();
+  }
+
   let view = <Dashboard stats={stats} listings={listings} users={users} />;
   if (pathname.startsWith('/admin/listings')) view = <Listings listings={listings} onPatch={patchListing} />;
   else if (pathname.startsWith('/admin/users')) view = <Users users={users} onBlock={blockUser} />;
+  else if (pathname.startsWith('/admin/payments')) view = <Payments payments={payments} onReview={reviewPayment} />;
   else if (pathname.startsWith('/admin/messages')) view = <Messages messages={messages} />;
   else if (pathname.startsWith('/admin/reports')) view = <Reports reports={reports} />;
 

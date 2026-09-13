@@ -4,19 +4,29 @@ import { api } from '../api';
 import { inr } from '../format.js';
 import SellerShell from '../components/SellerShell.jsx';
 import Cover from '../components/Cover.jsx';
+import ListingPackModal from '../components/ListingPackModal.jsx';
 
 export default function Dashboard() {
   const [listings, setListings] = useState([]);
   const [offers, setOffers] = useState([]);
   const [stats, setStats] = useState(null);
+  const [pack, setPack] = useState(null);
+  const [showPay, setShowPay] = useState(false);
 
-  useEffect(() => {
+  function load() {
     api('/api/my/listings').then((d) => {
       setListings(d.listings || []);
       setStats(d.stats || null);
     });
     api('/api/my/offers').then((d) => setOffers(d.offers || []));
+    api('/api/payments/pack').then(setPack).catch(() => {});
+  }
+
+  useEffect(() => {
+    load();
   }, []);
+
+  const atLimit = pack && pack.listingLimit != null && pack.listingCount >= pack.listingLimit;
 
   return (
     <SellerShell stats={stats}>
@@ -25,6 +35,11 @@ export default function Dashboard() {
           <h1>Dashboard</h1>
           <p>Snapshot of listings, offers and earnings.</p>
         </div>
+        {atLimit && (
+          <button className="btn btn-primary" type="button" onClick={() => setShowPay(true)}>
+            Pay ₹100 for 5 listings
+          </button>
+        )}
       </div>
       <div className="ml-stats">
         <div>
@@ -87,6 +102,16 @@ export default function Dashboard() {
           {offers.length === 0 && <p className="empty">No offers yet.</p>}
         </div>
       </div>
+      {showPay && pack && (
+        <ListingPackModal
+          pack={pack}
+          onClose={() => setShowPay(false)}
+          onSubmitted={() => {
+            load();
+            setShowPay(true);
+          }}
+        />
+      )}
     </SellerShell>
   );
 }

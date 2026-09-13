@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { v4: uuid } = require('uuid');
-const { users, listings, offers, messages, watchlist, reports, seed } = require('./data');
+const { users, listings, offers, messages, watchlist, reports, payments, seed } = require('./data');
 
 seed();
 
@@ -42,22 +42,66 @@ function adminOnly(req, res, next) {
 const MAX_SHOTS = 2;
 const MAX_SHOT_CHARS = 220000;
 const FREE_LISTING_LIMIT = 3;
+const LISTING_PACK_PRICE = 100;
+const LISTING_PACK_SLOTS = 5;
+const UPI_ID = 'dealbazaar@oksbi';
+const UPI_NAME = 'NexMarket';
 
 function listingCountFor(userId) {
   return listings.filter((l) => l.sellerId === userId && !l.removed).length;
 }
 
-function atFreeListingLimit(user) {
+function extraSlotsFor(user) {
+  return Math.max(0, Number(user && user.extraListingSlots) || 0);
+}
+
+function listingLimitFor(user) {
+  if (!user || user.role === 'admin') return null;
+  return FREE_LISTING_LIMIT + extraSlotsFor(user);
+}
+
+function atListingLimit(user) {
   if (!user || user.role === 'admin') return false;
-  return listingCountFor(user.id) >= FREE_LISTING_LIMIT;
+  return listingCountFor(user.id) >= listingLimitFor(user);
+}
+
+function pendingPaymentFor(userId) {
+  return payments.find((p) => p.userId === userId && p.status === 'pending') || null;
 }
 
 function publicUser(user) {
   const { password, ...safe } = user;
+  const listingLimit = listingLimitFor(user);
   return {
     ...safe,
+    extraListingSlots: extraSlotsFor(user),
     listingCount: listingCountFor(user.id),
-    listingLimit: user.role === 'admin' ? null : FREE_LISTING_LIMIT,
+    listingLimit,
+  };
+}
+
+function publicPayment(p) {
+  const user = users.find((u) => u.id === p.userId);
+  return {
+    id: p.id,
+    utr: p.utr,
+    payerName: p.payerName,
+    amount: p.amount,
+    slots: p.slots,
+    status: p.status,
+    createdAt: p.createdAt,
+    reviewedAt: p.reviewedAt || null,
+    user: user
+      ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          listingCount: listingCountFor(user.id),
+          listingLimit: listingLimitFor(user),
+          extraListingSlots: extraSlotsFor(user),
+        }
+      : null,
   };
 }
 
@@ -144,6 +188,7 @@ app.post('/api/auth/register', (req, res) => {
     verified: false,
     blocked: false,
     phone: '',
+    extraListingSlots: 0,
     createdAt: new Date().toISOString(),
   };
   users.push(user);
@@ -263,9 +308,12 @@ app.post('/api/listings', auth, (req, res) => {
   if (type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
   }
-  if (atFreeListingLimit(req.user)) {
+  if (atListingLimit(req.user)) {
     return res.status(403).json({
-      error: `Free plan allows ${FREE_LISTING_LIMIT} listings per account.`,
+      error: `Listing limit reached. Pay ₹${LISTING_PACK_PRICE} to add ${LISTING_PACK_SLOTS} more listings.`,
+      code: 'LISTING_LIMIT',
+      listingCount: listingCountFor(req.user.id),
+      listingLimit: listingLimitFor(req.user),
     });
   }
   const listedOn = listedOnNow();
@@ -390,10 +438,66 @@ app.get('/api/my/listings', auth, (req, res) => {
     earnings: req.user.earnings || mine.filter((l) => l.status === 'sold').reduce((s, l) => s + l.price, 0),
     offers: offers.filter((o) => o.sellerId === req.user.id && o.status === 'open').length,
     messages: messages.filter((m) => m.toId === req.user.id).length,
-    listingLimit: req.user.role === 'admin' ? null : FREE_LISTING_LIMIT,
+    listingLimit: listingLimitFor(req.user),
     listingCount: mine.length,
+    extraListingSlots: extraSlotsFor(req.user),
+    pendingPayment: pendingPaymentFor(req.user.id)
+      ? publicPayment(pendingPaymentFor(req.user.id))
+      : null,
   };
   res.json({ listings: mine, stats });
+});
+
+app.get('/api/payments/pack', auth, (req, res) => {
+  const pending = pendingPaymentFor(req.user.id);
+  res.json({
+    upiId: UPI_ID,
+    upiName: UPI_NAME,
+    qrImage: '/qr-code.png',
+    amount: LISTING_PACK_PRICE,
+    slots: LISTING_PACK_SLOTS,
+    freeLimit: FREE_LISTING_LIMIT,
+    listingCount: listingCountFor(req.user.id),
+    listingLimit: listingLimitFor(req.user),
+    extraListingSlots: extraSlotsFor(req.user),
+    atLimit: atListingLimit(req.user),
+    pendingPayment: pending ? publicPayment(pending) : null,
+  });
+});
+
+app.post('/api/payments/utr', auth, (req, res) => {
+  if (req.user.role === 'admin') {
+    return res.status(400).json({ error: 'Admin accounts do not need listing packs' });
+  }
+  const utr = String((req.body && req.body.utr) || '')
+    .replace(/\s+/g, '')
+    .toUpperCase();
+  const payerName = String((req.body && req.body.payerName) || '').trim();
+  if (!/^[A-Z0-9]{12}$/.test(utr)) {
+    return res.status(400).json({ error: 'Enter a valid 12-character UTR / UPI reference number' });
+  }
+  if (payerName.length < 2) {
+    return res.status(400).json({ error: 'Payment profile name required' });
+  }
+  if (pendingPaymentFor(req.user.id)) {
+    return res.status(400).json({ error: 'A payment is already under admin review' });
+  }
+  if (payments.some((p) => p.utr === utr)) {
+    return res.status(400).json({ error: 'This UTR is already submitted' });
+  }
+  const payment = {
+    id: uuid(),
+    userId: req.user.id,
+    utr,
+    payerName,
+    amount: LISTING_PACK_PRICE,
+    slots: LISTING_PACK_SLOTS,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    reviewedAt: null,
+  };
+  payments.unshift(payment);
+  res.status(201).json({ payment: publicPayment(payment) });
 });
 
 app.get('/api/messages', auth, (req, res) => {
@@ -489,9 +593,12 @@ app.post('/api/watchlist/:id', auth, (req, res) => {
 app.post('/api/listings/:id/duplicate', auth, (req, res) => {
   const listing = listings.find((l) => l.id === req.params.id && l.sellerId === req.user.id);
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
-  if (atFreeListingLimit(req.user)) {
+  if (atListingLimit(req.user)) {
     return res.status(403).json({
-      error: `Free plan allows ${FREE_LISTING_LIMIT} listings per account.`,
+      error: `Listing limit reached. Pay ₹${LISTING_PACK_PRICE} to add ${LISTING_PACK_SLOTS} more listings.`,
+      code: 'LISTING_LIMIT',
+      listingCount: listingCountFor(req.user.id),
+      listingLimit: listingLimitFor(req.user),
     });
   }
   const copy = {
@@ -558,7 +665,42 @@ app.get('/api/admin/stats', auth, adminOnly, (_req, res) => {
     rejected: visibleListings.filter((l) => l.status === 'rejected').length,
     sold: visibleListings.filter((l) => l.status === 'sold').length,
     reports: reports.length,
+    pendingPayments: payments.filter((p) => p.status === 'pending').length,
   });
+});
+
+app.get('/api/admin/payments', auth, adminOnly, (req, res) => {
+  const { status } = req.query;
+  let items = payments.slice();
+  if (status && ['pending', 'approved', 'rejected'].includes(String(status))) {
+    items = items.filter((p) => p.status === status);
+  }
+  res.json({
+    payments: items
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(publicPayment),
+  });
+});
+
+app.patch('/api/admin/payments/:id', auth, adminOnly, (req, res) => {
+  const payment = payments.find((p) => p.id === req.params.id);
+  if (!payment) return res.status(404).json({ error: 'Payment not found' });
+  const status = String((req.body && req.body.status) || '');
+  if (!['approved', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be approved or rejected' });
+  }
+  if (payment.status !== 'pending') {
+    return res.status(400).json({ error: 'This payment was already reviewed' });
+  }
+  payment.status = status;
+  payment.reviewedAt = new Date().toISOString();
+  if (status === 'approved') {
+    const user = users.find((u) => u.id === payment.userId);
+    if (user) {
+      user.extraListingSlots = extraSlotsFor(user) + (payment.slots || LISTING_PACK_SLOTS);
+    }
+  }
+  res.json({ payment: publicPayment(payment) });
 });
 
 app.get('/api/admin/listings', auth, adminOnly, (req, res) => {

@@ -6,6 +6,7 @@ const offers = [];
 const messages = [];
 const watchlist = [];
 const reports = [];
+const payments = [];
 
 function seed() {
   if (users.length) return;
@@ -19,6 +20,7 @@ function seed() {
     verified: true,
     blocked: false,
     phone: '9876543210',
+    extraListingSlots: 0,
     createdAt: '2022-01-10T00:00:00.000Z',
   };
   const anand = {
@@ -33,6 +35,7 @@ function seed() {
     rating: 4.9,
     reviews: 18,
     earnings: 285000,
+    extraListingSlots: 0,
     createdAt: '2022-01-15T00:00:00.000Z',
   };
   const rahul = {
@@ -47,6 +50,7 @@ function seed() {
     rating: 4.8,
     reviews: 24,
     earnings: 0,
+    extraListingSlots: 0,
     createdAt: '2022-01-01T00:00:00.000Z',
   };
   const ravi = {
@@ -61,6 +65,7 @@ function seed() {
     rating: 4.7,
     reviews: 9,
     earnings: 0,
+    extraListingSlots: 0,
     createdAt: '2023-03-01T00:00:00.000Z',
   };
   const arjun = {
@@ -72,6 +77,7 @@ function seed() {
     verified: false,
     blocked: false,
     phone: '9844455566',
+    extraListingSlots: 0,
     createdAt: new Date().toISOString(),
   };
   users.push(admin, anand, rahul, ravi, arjun);
@@ -1114,4 +1120,4 @@ function seed() {
   });
 }
 
-module.exports = { users, listings, offers, messages, watchlist, reports, seed };
+module.exports = { users, listings, offers, messages, watchlist, reports, payments, seed };
