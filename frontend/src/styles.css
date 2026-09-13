@@ -3630,3 +3630,20 @@ main {
 
 @media (max-width: 1100px) {
 }
+
+@media (max-width: 900px) {
+  html,
+  body,
+  #root,
+  .app-shell {
+    min-width: 0;
+  }
+
+  main {
+    flex: none;
+  }
+
+  .cta-wrap {
+    margin-bottom: 24px;
+  }
+}
