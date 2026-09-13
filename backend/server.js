@@ -3,15 +3,15 @@ const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const { v4: uuid } = require('uuid');
-const { users, listings, offers, messages, watchlist, reports, payments, seed } = require('./data');
-
-seed();
+const { users, listings, offers, messages, watchlist, reports, payments } = require('./data');
+const { connectAndLoad, persistMiddleware } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
+app.use(persistMiddleware);
 
 const tokens = new Map();
 
@@ -794,6 +794,13 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`NexMarket API running on http://localhost:${PORT}`);
-});
+connectAndLoad()
+  .then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`NexMarket API running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to start:', err);
+    process.exit(1);
+  });
