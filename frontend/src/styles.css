@@ -1193,7 +1193,8 @@ main {
 }
 
 .sell-head-copy {
-  max-width: 560px;
+  flex: 1;
+  min-width: 0;
 }
 
 .sell-head h1 {
@@ -1214,15 +1215,16 @@ main {
 }
 
 .sell-desc {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   color: #64748b;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.45;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .sell-quota {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   color: #64748b;
   font-size: 15px;
   line-height: 1.4;
