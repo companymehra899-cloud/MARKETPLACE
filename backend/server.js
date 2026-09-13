@@ -84,7 +84,7 @@ function parseTech(techStack) {
 
 function publicListing(listing, opts = {}) {
   const seller = users.find((u) => u.id === listing.sellerId);
-  const { phone, ...rest } = listing;
+  const { phone, contact, ...rest } = listing;
   const out = {
     ...rest,
     seller: seller
@@ -98,7 +98,17 @@ function publicListing(listing, opts = {}) {
         }
       : null,
   };
-  if (opts.includePrivate) out.phone = phone || '';
+  if (opts.admin) {
+    out.phone = phone || seller?.phone || '';
+    out.contact = contact || seller?.email || '';
+    if (seller) {
+      out.seller = {
+        ...out.seller,
+        email: seller.email || '',
+        phone: seller.phone || '',
+      };
+    }
+  }
   return out;
 }
 
@@ -224,7 +234,7 @@ app.get('/api/listings/:id', optionalAuth, (req, res) => {
   if (listing.status !== 'approved' && !isOwner && !isAdmin) {
     return res.status(404).json({ error: 'Listing not found' });
   }
-  res.json({ listing: publicListing(listing, { includePrivate: isOwner || isAdmin }) });
+  res.json({ listing: publicListing(listing, { admin: isAdmin }) });
 });
 
 app.post('/api/listings', auth, (req, res) => {
@@ -354,14 +364,14 @@ app.patch('/api/listings/:id', auth, (req, res) => {
   if (liveUrl !== undefined) listing.liveUrl = listing.type === 'website' ? String(liveUrl || '').trim() : '';
   listing.lastUpdated = listedOnNow();
   if (listing.status === 'rejected') listing.status = 'pending';
-  res.json({ listing: publicListing(listing, { includePrivate: true }) });
+  res.json({ listing: publicListing(listing) });
 });
 
 app.get('/api/my/listings', auth, (req, res) => {
   const mine = listings
     .filter((l) => l.sellerId === req.user.id && !l.removed)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .map((l) => ({ ...publicListing(l, { includePrivate: true }), uiStatus: uiStatus(l.status) }));
+    .map((l) => ({ ...publicListing(l), uiStatus: uiStatus(l.status) }));
   const stats = {
     total: mine.length,
     active: mine.filter((l) => l.status === 'approved').length,
@@ -504,7 +514,7 @@ app.get('/api/admin/listings', auth, adminOnly, (req, res) => {
     listings: items
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .map((l) => ({
-        ...publicListing(l, { includePrivate: true }),
+        ...publicListing(l, { admin: true }),
         uiStatus: uiStatus(l.status),
       })),
   });
@@ -520,7 +530,7 @@ app.patch('/api/admin/listings/:id', auth, adminOnly, (req, res) => {
   if (typeof featured === 'boolean') listing.featured = featured;
   if (removed === true) listing.removed = true;
   listing.lastUpdated = listedOnNow();
-  res.json({ listing: publicListing(listing, { includePrivate: true }), uiStatus: uiStatus(listing.status) });
+  res.json({ listing: publicListing(listing, { admin: true }), uiStatus: uiStatus(listing.status) });
 });
 
 app.get('/api/admin/users', auth, adminOnly, (_req, res) => {

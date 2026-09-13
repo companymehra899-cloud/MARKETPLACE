@@ -168,11 +168,12 @@ function Listings({ listings, onPatch }) {
             <Cover listing={l} />
             <div className="ml-info">
               <h3>{l.name}</h3>
-              <p className="meta">
-                <span>{typeLabel(l.type)}</span>
-                <em>{inr(l.price)}</em>
-                <em>{l.seller?.name || 'User'}</em>
-              </p>
+                <p className="meta">
+                  <span>{typeLabel(l.type)}</span>
+                  <em>{inr(l.price)}</em>
+                  <em>{l.seller?.name || 'User'}</em>
+                  {l.seller?.phone ? <em>{l.seller.phone}</em> : null}
+                </p>
             </div>
             <div className="ml-price">
               <span className={`st ${l.status}`}>{l.uiStatus || l.status}</span>
