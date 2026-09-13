@@ -95,7 +95,7 @@ const SIMILAR_PHOTOS = {
 function listingPhotos(listing) {
   const uploaded = (listing.screenshots || []).filter(Boolean);
   const source = uploaded.length ? uploaded : WEB_GALLERIES[listing.cover] || WEB_GALLERIES.generic;
-  return source.slice(0, 2);
+  return source.slice(0, 4);
 }
 
 function similarPhoto(listing) {
@@ -113,11 +113,60 @@ function initials(name = '') {
     .toUpperCase();
 }
 
-function formatDate(value) {
+function memberSince(value) {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+}
+
+function MetricIcon({ name }) {
+  const common = { viewBox: '0 0 24 24', width: '22', height: '22', fill: 'none', stroke: '#64748b', strokeWidth: '1.7' };
+  if (name === 'chart') {
+    return (
+      <svg {...common}>
+        <path d="M4 19V9M10 19V5M16 19v-7M22 19V8" />
+      </svg>
+    );
+  }
+  if (name === 'users') {
+    return (
+      <svg {...common}>
+        <circle cx="9" cy="8" r="3" />
+        <path d="M3 19c.6-3.2 2.8-5 6-5s5.4 1.8 6 5" />
+        <circle cx="17" cy="9" r="2.4" />
+        <path d="M16.2 14.2c2.2.4 3.8 2 4.3 4.8" />
+      </svg>
+    );
+  }
+  if (name === 'cal') {
+    return (
+      <svg {...common}>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M8 3v4M16 3v4M3 10h18" />
+      </svg>
+    );
+  }
+  if (name === 'plat') {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c2.6 3.2 4 6.2 4 9s-1.4 5.8-4 9c-2.6-3.2-4-6.2-4-9s1.4-5.8 4-9z" />
+      </svg>
+    );
+  }
+  if (name === 'folder') {
+    return (
+      <svg {...common}>
+        <path d="M3 7h6l2 2h10v10H3z" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path d="M12 3l8 4v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" />
+    </svg>
+  );
 }
 
 export default function ListingDetail() {
@@ -130,12 +179,10 @@ export default function ListingDetail() {
   const [tab, setTab] = useState('overview');
   const [note, setNote] = useState('');
   const [shot, setShot] = useState(0);
-  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     setTab('overview');
     setShot(0);
-    setLiked(false);
     api(`/api/listings/${id}`)
       .then((d) => {
         setListing(d.listing);
@@ -151,16 +198,6 @@ export default function ListingDetail() {
     return related.filter((l) => l.type === listing.type && l.id !== listing.id).slice(0, 4);
   }, [related, listing]);
 
-  async function save() {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    await api(`/api/watchlist/${id}`, { method: 'POST' });
-    setLiked(true);
-    setNote('Saved to watchlist.');
-  }
-
   async function contact() {
     if (!user) {
       navigate('/login');
@@ -171,12 +208,6 @@ export default function ListingDetail() {
       body: JSON.stringify({ listingId: id, text: 'Hi, I am interested in this listing.' }),
     });
     setNote('Message sent to the seller.');
-  }
-
-  function share() {
-    const url = window.location.href;
-    if (navigator.clipboard) navigator.clipboard.writeText(url).catch(() => {});
-    setNote('Link copied.');
   }
 
   if (error) {
@@ -191,10 +222,7 @@ export default function ListingDetail() {
   const isApp = listing.type === 'app';
   const photos = listingPhotos(listing);
   const currentShot = photos[shot] || photos[0];
-  const views = listing.views || 320;
-  const likes = (listing.likes || 28) + (liked ? 1 : 0);
   const chips = (listing.tags || listing.keyFeatures || []).slice(0, 4);
-  const brand = (listing.name || 'Brand').split(' ')[0];
   const crumbCat = listing.category?.split('&')[0]?.trim() || listing.category;
 
   return (
@@ -213,44 +241,34 @@ export default function ListingDetail() {
 
       <div className="ld-top">
         <div className="ld-preview">
-          <div className={`browser-frame ${isApp ? 'is-app' : ''}`}>
-            <div className="browser-bar">
-              <span className="dots">
-                <i />
-                <i />
-                <i />
-              </span>
-              <div className="browser-url">
-                <b>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#2563eb" strokeWidth="2">
-                    <path d="M4 12h16M12 4l8 8-8 8" />
-                  </svg>
-                  {brand}
-                </b>
-                <span>Home</span>
-                <span>Destinations</span>
-                <span>Blog</span>
-                <span>About</span>
-                <em>
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#94a3b8" strokeWidth="2">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="M20 20l-3.5-3.5" />
-                  </svg>
-                </em>
-              </div>
-            </div>
-            <div className="browser-hero">
+          <div className={`ld-gallery ${isApp ? 'is-app' : ''}`}>
+            <div className="ld-main-shot">
               {currentShot ? <img src={currentShot} alt={listing.name} /> : <Cover listing={listing} />}
-              <div className="browser-copy">
-                <h3>{isApp ? listing.name : 'Explore the World'}</h3>
-                <p>{listing.subtitle || 'Discover amazing places, travel guides and useful tips.'}</p>
-                <button type="button">{isApp ? 'Install App' : 'Start Exploring'}</button>
-              </div>
+              {photos.length > 1 && (
+                <>
+                  <button
+                    className="ld-nav prev"
+                    type="button"
+                    onClick={() => setShot((s) => (s - 1 + photos.length) % photos.length)}
+                    aria-label="Previous screenshot"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="ld-nav next"
+                    type="button"
+                    onClick={() => setShot((s) => (s + 1) % photos.length)}
+                    aria-label="Next screenshot"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
             </div>
           </div>
-          <div className="ld-thumbs two">
+          <div className="ld-thumbs">
             {photos.map((src, i) => (
-              <button key={src} className={shot === i ? 'on' : ''} type="button" onClick={() => setShot(i)}>
+              <button key={`${src}-${i}`} className={shot === i ? 'on' : ''} type="button" onClick={() => setShot(i)}>
                 <img src={src} alt={`${listing.name} preview ${i + 1}`} />
               </button>
             ))}
@@ -261,162 +279,88 @@ export default function ListingDetail() {
           <span className={`type-pill ${isApp ? 'app' : ''}`}>{typeLabel(listing.type)}</span>
           <h1>{listing.name}</h1>
           <p className="ld-sub">{listing.subtitle || listing.description}</p>
-          <div className="ld-stats">
-            <span>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" strokeWidth="1.8">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-              </svg>
-              {views}
-            </span>
-            <button type="button" className={liked ? 'on' : ''} onClick={save}>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : '#64748b'} strokeWidth="1.8">
-                <path d="M12 21s-7-4.6-9.5-8.2C.4 9.8 2.2 6 6 6c2 0 3.2 1 4 2 0.8-1 2-2 4-2 3.8 0 5.6 3.8 3.5 6.8C19 16.4 12 21 12 21z" />
-              </svg>
-              {likes}
-            </button>
-            <button type="button" onClick={share}>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" strokeWidth="1.8">
-                <circle cx="18" cy="5" r="3" />
-                <circle cx="6" cy="12" r="3" />
-                <circle cx="18" cy="19" r="3" />
-                <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
-              </svg>
-              Share
-            </button>
+          <div className="ld-price-row">
+            <b>{inr(listing.price)}</b>
+            <em>Negotiable</em>
           </div>
-          <div className="ld-highlights">
-            <div>
-              <span className="hi-ico">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563eb" strokeWidth="1.8">
-                  <rect x="3" y="4" width="18" height="12" rx="2" />
-                  <path d="M8 20h8M12 16v4" />
-                </svg>
+          <div className="ld-metrics">
+            <div className="ld-metric">
+              <span className="ld-metric-ico">
+                <MetricIcon name="chart" />
               </span>
-              <b>Responsive</b>
-              <small>Design</small>
+              <small>Monthly Revenue</small>
+              <strong>{listing.monthlyRevenue ? inr(listing.monthlyRevenue) : '—'}</strong>
             </div>
-            <div>
-              <span className="hi-ico">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563eb" strokeWidth="1.8">
-                  <circle cx="12" cy="12" r="8" />
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M12 4v2M12 18v2M4 12h2M18 12h2" />
-                </svg>
+            <div className="ld-metric">
+              <span className="ld-metric-ico">
+                <MetricIcon name="users" />
               </span>
-              <b>Modern</b>
-              <small>UI</small>
+              <small>{isApp ? 'Downloads' : 'Monthly Visitors'}</small>
+              <strong>{isApp ? listing.downloads || '—' : listing.traffic || '—'}</strong>
             </div>
-            <div>
-              <span className="hi-ico">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563eb" strokeWidth="1.8">
-                  <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
-                </svg>
+            <div className="ld-metric">
+              <span className="ld-metric-ico">
+                <MetricIcon name="cal" />
               </span>
-              <b>Fast</b>
-              <small>Loading</small>
+              <small>{isApp ? 'App Size' : 'Age'}</small>
+              <strong>{isApp ? listing.appSize || '—' : listing.domainAge || '—'}</strong>
+            </div>
+            <div className="ld-metric">
+              <span className="ld-metric-ico">
+                <MetricIcon name="plat" />
+              </span>
+              <small>Platform</small>
+              <strong>{listing.platform || listing.techStack?.[0] || (isApp ? 'Android' : 'Web')}</strong>
+            </div>
+            <div className="ld-metric">
+              <span className="ld-metric-ico">
+                <MetricIcon name="folder" />
+              </span>
+              <small>Category</small>
+              <strong>{listing.category}</strong>
+            </div>
+            <div className="ld-metric">
+              <span className="ld-metric-ico">
+                <MetricIcon name="shield" />
+              </span>
+              <small>Monetization</small>
+              <strong>{listing.monetization || '—'}</strong>
             </div>
           </div>
-          <dl className="ld-meta">
-            <div>
-              <dt>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M3 12h18M12 3c2.5 3 4 6 4 9s-1.5 6-4 9c-2.5-3-4-6-4-9s1.5-6 4-9z" />
-                </svg>
-                Platform
-              </dt>
-              <dd>{listing.platform || (isApp ? 'Android' : 'Web')}</dd>
-            </div>
-            <div>
-              <dt>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                  <rect x="4" y="4" width="7" height="7" rx="1" />
-                  <rect x="13" y="4" width="7" height="7" rx="1" />
-                  <rect x="4" y="13" width="7" height="7" rx="1" />
-                  <rect x="13" y="13" width="7" height="7" rx="1" />
-                </svg>
-                Category
-              </dt>
-              <dd>{listing.category}</dd>
-            </div>
-            <div>
-              <dt>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                  <rect x="3" y="5" width="18" height="16" rx="2" />
-                  <path d="M8 3v4M16 3v4M3 10h18" />
-                </svg>
-                Listed on
-              </dt>
-              <dd>{listing.listedOn || formatDate(listing.createdAt)}</dd>
-            </div>
-            <div>
-              <dt>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                  <path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7l7-4z" />
-                  <path d="M9 12l2 2 4-4" />
-                </svg>
-                Last Updated
-              </dt>
-              <dd>{listing.lastUpdated || formatDate(listing.createdAt)}</dd>
-            </div>
-          </dl>
         </div>
 
         <aside className="ld-buy">
-          <p className="ask-lg">{inr(listing.price)}</p>
+          <h3>Connect With Seller</h3>
           <button className="btn btn-primary full offer-btn" type="button" onClick={contact}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+              <path d="M4 6h16v12H4z" />
+              <path d="M4 7l8 6 8-6" />
             </svg>
-            Message / Contact Seller
+            Send Contact Request
           </button>
-          <Link to="/dashboard/messages" className="seller-mini" onClick={contact}>
-            <span className="avatar">{initials(listing.seller?.name).slice(0, 1)}</span>
-            <span>
-              <strong>{listing.seller?.name}</strong>
-              {listing.seller?.verified && (
-                <em>
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="#2563eb">
-                    <path d="M12 2l2.4 2.2 3.2-.4 1.2 3 2.8 1.6-1.2 3 .8 3.1-3 1.2-1.6 2.8-3-1.2-3.1.8-1.2-3-2.8-1.6 1.2-3-.8-3.1 3-1.2 1.6-2.8L12 2z" />
-                    <path d="M8.8 12.2l2.1 2.1 4.3-4.4" fill="none" stroke="#fff" strokeWidth="1.8" />
-                  </svg>
-                  Verified Seller
-                </em>
-              )}
-            </span>
-            <b>›</b>
-          </Link>
-          <ul className="trust-mini">
-            <li>
+          <div className="ld-seller-card">
+            <h4>Seller Information</h4>
+            <div className="ld-seller-row">
+              <span className="avatar lg">{initials(listing.seller?.name).slice(0, 1)}</span>
               <span>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" strokeWidth="1.8">
-                  <path d="M12 3l8 4v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" />
-                  <path d="M9 12l2 2 4-4" />
-                </svg>
+                <strong>{listing.seller?.name || 'Seller'}</strong>
+                <small>Member since {memberSince(listing.seller?.createdAt)}</small>
               </span>
-              Safe &amp; Secure Deal
-            </li>
-            <li>
-              <span>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" strokeWidth="1.8">
-                  <rect x="3" y="6" width="18" height="12" rx="2" />
-                  <path d="M3 10h18" />
-                </svg>
-              </span>
-              Secure Payments
-            </li>
-            <li>
-              <span>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" strokeWidth="1.8">
-                  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
-                  <rect x="2" y="14" width="5" height="6" rx="1" />
-                  <rect x="17" y="14" width="5" height="6" rx="1" />
-                </svg>
-              </span>
-              Support Available
-            </li>
-          </ul>
+            </div>
+            <div className="ld-seller-counts">
+              <div>
+                <b>{listing.seller?.listingCount ?? 0}</b>
+                <small>Total Listings</small>
+              </div>
+              <div>
+                <b>{listing.seller?.activeListings ?? 0}</b>
+                <small>Active Listings</small>
+              </div>
+            </div>
+            <Link to="/dashboard/messages" className="ld-view-profile" onClick={contact}>
+              View Profile
+            </Link>
+          </div>
         </aside>
       </div>
 

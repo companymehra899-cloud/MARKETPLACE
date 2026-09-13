@@ -95,6 +95,8 @@ function publicListing(listing, opts = {}) {
           createdAt: seller.createdAt,
           rating: seller.rating || 4.8,
           reviews: seller.reviews || 0,
+          listingCount: listingCountFor(seller.id),
+          activeListings: listings.filter((l) => l.sellerId === seller.id && l.status === 'approved' && !l.removed).length,
         }
       : null,
   };
