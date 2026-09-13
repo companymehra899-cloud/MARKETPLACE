@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const { v4: uuid } = require('uuid');
@@ -783,6 +785,15 @@ app.patch('/api/admin/users/:id', auth, adminOnly, (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-app.listen(PORT, () => {
+const distPath = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`NexMarket API running on http://localhost:${PORT}`);
 });
