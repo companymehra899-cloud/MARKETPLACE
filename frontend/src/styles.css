@@ -3412,10 +3412,49 @@ main {
 .list-card {
   display: grid;
   grid-template-columns: 220px 1fr;
+  align-items: stretch;
+  padding: 12px;
+  gap: 16px;
 }
 
 .list-card .thumb {
-  height: 150px;
+  height: 100%;
+  min-height: 168px;
+}
+
+.list-card .listing-body {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 4px 0 0;
+  min-width: 0;
+}
+
+.list-card .card-blurb {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.list-card .metrics-fill {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 16px;
+  flex: 1;
+  margin-bottom: 14px;
+}
+
+.list-card .metrics-fill > div {
+  min-width: 0;
+}
+
+.list-card .metrics-fill strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-card .view-btn {
+  margin-top: auto;
 }
 
 .pager {
