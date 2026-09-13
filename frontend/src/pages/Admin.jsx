@@ -120,7 +120,8 @@ function Dashboard({ stats, listings, users }) {
               <div>
                 <strong>{u.name}</strong>
                 <span>
-                  {u.email} · {u.listingCount} listings
+                  {u.email}
+                  {u.phone ? ` · ${u.phone}` : ''} · {u.listingCount} listings
                 </span>
               </div>
               <b>{u.blocked ? 'Blocked' : 'Active'}</b>
@@ -222,6 +223,7 @@ function Users({ users, onBlock }) {
                 <h3>{u.name}</h3>
                 <p className="meta">
                   <span>{u.email}</span>
+                  {u.phone ? <span>{u.phone}</span> : null}
                   <em>{u.listingCount} Listings</em>
                 </p>
                 {open && (
