@@ -19,6 +19,7 @@ const LINKS = [
   { to: '/admin/payments', label: 'Payments' },
   { to: '/admin/messages', label: 'Messages' },
   { to: '/admin/reports', label: 'Reports' },
+  { to: '/admin/settings', label: 'Settings' },
 ];
 
 function AdminShell({ children }) {
@@ -398,6 +399,82 @@ function Reports({ reports }) {
   );
 }
 
+function Settings() {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [note, setNote] = useState('');
+
+  async function save(e) {
+    e.preventDefault();
+    setError('');
+    setNote('');
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+    setBusy(true);
+    try {
+      await api('/api/auth/password', {
+        method: 'PATCH',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setNote('Password updated.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="ml-head">
+        <div>
+          <h1>Settings</h1>
+          <p>Change the admin login password.</p>
+        </div>
+      </div>
+      <form className="panel form profile-form" onSubmit={save}>
+        <h2>Change Password</h2>
+        <label>Current password</label>
+        <input
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+        />
+        <label>New password</label>
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+        <label>Confirm new password</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+        {error && <p className="error">{error}</p>}
+        {note && <p className="empty">{note}</p>}
+        <button className="btn btn-primary" type="submit" disabled={busy}>
+          {busy ? 'Saving...' : 'Update Password'}
+        </button>
+      </form>
+    </>
+  );
+}
+
 export default function Admin() {
   const [stats, setStats] = useState(null);
   const [listings, setListings] = useState([]);
@@ -449,6 +526,7 @@ export default function Admin() {
   else if (pathname.startsWith('/admin/payments')) view = <Payments payments={payments} onReview={reviewPayment} />;
   else if (pathname.startsWith('/admin/messages')) view = <Messages messages={messages} />;
   else if (pathname.startsWith('/admin/reports')) view = <Reports reports={reports} />;
+  else if (pathname.startsWith('/admin/settings')) view = <Settings />;
 
   return <AdminShell>{view}</AdminShell>;
 }

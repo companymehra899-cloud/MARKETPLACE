@@ -180,6 +180,14 @@ export default function App() {
               </AdminOnly>
             }
           />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminOnly>
+                <Admin />
+              </AdminOnly>
+            }
+          />
           <Route path="/how-it-works" element={<Static kind="how" />} />
           <Route path="/help" element={<Static kind="help" />} />
           <Route path="/safety" element={<Static kind="safety" />} />

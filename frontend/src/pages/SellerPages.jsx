@@ -192,18 +192,77 @@ export function ProfilePage() {
 
 export function SettingsPage() {
   const stats = useMine();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [note, setNote] = useState('');
+
+  async function save(e) {
+    e.preventDefault();
+    setError('');
+    setNote('');
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+    setBusy(true);
+    try {
+      await api('/api/auth/password', {
+        method: 'PATCH',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setNote('Password updated.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <SellerShell stats={stats}>
       <div className="ml-head">
         <div>
           <h1>Account Settings</h1>
-          <p>Notifications, password and login security.</p>
+          <p>Change your login password.</p>
         </div>
       </div>
-      <div className="panel" style={{ maxWidth: 520 }}>
-        <p>Email alerts for new offers: On</p>
-        <p>Email alerts for messages: On</p>
-      </div>
+      <form className="panel form profile-form" onSubmit={save}>
+        <h2>Change Password</h2>
+        <label>Current password</label>
+        <input
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+        />
+        <label>New password</label>
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+        <label>Confirm new password</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+        {error && <p className="error">{error}</p>}
+        {note && <p className="empty">{note}</p>}
+        <button className="btn btn-primary" type="submit" disabled={busy}>
+          {busy ? 'Saving...' : 'Update Password'}
+        </button>
+      </form>
     </SellerShell>
   );
 }

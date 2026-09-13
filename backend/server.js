@@ -241,6 +241,22 @@ app.patch('/api/auth/me', auth, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
+app.patch('/api/auth/password', auth, (req, res) => {
+  const currentPassword = String(req.body?.currentPassword || '');
+  const newPassword = String(req.body?.newPassword || '');
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current password and new password required' });
+  }
+  if (req.user.password !== currentPassword) {
+    return res.status(400).json({ error: 'Current password is incorrect' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+  req.user.password = newPassword;
+  res.json({ ok: true });
+});
+
 app.get('/api/listings', optionalAuth, (req, res) => {
   const { type, q, minPrice, maxPrice, category, sort, status } = req.query;
   const isAdmin = req.user && req.user.role === 'admin';
