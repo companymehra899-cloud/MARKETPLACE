@@ -423,10 +423,56 @@ app.post('/api/messages', auth, (req, res) => {
     fromId: req.user.id,
     toId: target,
     text: String(text),
+    kind: 'listing',
     createdAt: new Date().toISOString(),
   };
   messages.unshift(msg);
   res.status(201).json({ message: msg });
+});
+
+function adminUser() {
+  return users.find((u) => u.role === 'admin') || null;
+}
+
+function supportPayload(m) {
+  const from = users.find((u) => u.id === m.fromId);
+  return {
+    ...m,
+    fromName: m.name || from?.name || 'Guest',
+    fromEmail: m.email || from?.email || '',
+    fromPhone: from?.phone || m.phone || '',
+  };
+}
+
+app.post('/api/support', optionalAuth, (req, res) => {
+  const { name, email, phone, text } = req.body || {};
+  const body = String(text || '').trim();
+  if (!body) return res.status(400).json({ error: 'Message required' });
+  const admin = adminUser();
+  if (!admin) return res.status(500).json({ error: 'Support is unavailable' });
+  const msg = {
+    id: uuid(),
+    listingId: '',
+    fromId: req.user?.id || '',
+    toId: admin.id,
+    text: body,
+    name: String(name || req.user?.name || 'Guest').trim() || 'Guest',
+    email: String(email || req.user?.email || '').trim(),
+    phone: String(phone || req.user?.phone || '').trim(),
+    kind: 'support',
+    createdAt: new Date().toISOString(),
+  };
+  messages.unshift(msg);
+  res.status(201).json({ message: supportPayload(msg) });
+});
+
+app.get('/api/admin/messages', auth, adminOnly, (_req, res) => {
+  res.json({
+    messages: messages
+      .filter((m) => m.kind === 'support' || m.toId === _req.user.id)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(supportPayload),
+  });
 });
 
 app.get('/api/watchlist', auth, (req, res) => {

@@ -16,6 +16,7 @@ const LINKS = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/listings', label: 'Listings' },
   { to: '/admin/users', label: 'Users' },
+  { to: '/admin/messages', label: 'Messages' },
   { to: '/admin/reports', label: 'Reports' },
 ];
 
@@ -261,6 +262,35 @@ function Users({ users, onBlock }) {
   );
 }
 
+function Messages({ messages }) {
+  return (
+    <>
+      <div className="ml-head">
+        <div>
+          <h1>Messages</h1>
+          <p>Support messages from Contact Support on Sell Your Project and the contact page.</p>
+        </div>
+      </div>
+      <div className="table">
+        {messages.map((m) => (
+          <div key={m.id} className="table-row">
+            <div>
+              <strong>{m.fromName}</strong>
+              <span>
+                {m.fromEmail || 'No email'}
+                {m.fromPhone ? ` · ${m.fromPhone}` : ''}
+              </span>
+            </div>
+            <span>{m.text}</span>
+            <em>{new Date(m.createdAt).toLocaleString('en-IN')}</em>
+          </div>
+        ))}
+        {messages.length === 0 && <p className="empty">No support messages yet.</p>}
+      </div>
+    </>
+  );
+}
+
 function Reports({ reports }) {
   return (
     <>
@@ -296,19 +326,22 @@ export default function Admin() {
   const [listings, setListings] = useState([]);
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
+  const [messages, setMessages] = useState([]);
   const { pathname } = useLocation();
 
   async function load() {
-    const [s, l, u, r] = await Promise.all([
+    const [s, l, u, r, m] = await Promise.all([
       api('/api/admin/stats'),
       api('/api/admin/listings'),
       api('/api/admin/users'),
       api('/api/admin/reports'),
+      api('/api/admin/messages'),
     ]);
     setStats(s);
     setListings(l.listings || []);
     setUsers(u.users || []);
     setReports(r.reports || []);
+    setMessages((m.messages || []).filter((item) => item.kind === 'support'));
   }
 
   useEffect(() => {
@@ -328,6 +361,7 @@ export default function Admin() {
   let view = <Dashboard stats={stats} listings={listings} users={users} />;
   if (pathname.startsWith('/admin/listings')) view = <Listings listings={listings} onPatch={patchListing} />;
   else if (pathname.startsWith('/admin/users')) view = <Users users={users} onBlock={blockUser} />;
+  else if (pathname.startsWith('/admin/messages')) view = <Messages messages={messages} />;
   else if (pathname.startsWith('/admin/reports')) view = <Reports reports={reports} />;
 
   return <AdminShell>{view}</AdminShell>;

@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
+import { useAuth } from '../context/AuthContext.jsx';
 import PageLayout from '../components/PageLayout.jsx';
 
 const COPY = {
@@ -60,8 +62,59 @@ const COPY = {
   },
 };
 
+function ContactForm() {
+  const { user } = useAuth();
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    setName(user?.name || '');
+    setEmail(user?.email || '');
+  }, [user]);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError('');
+    setNote('');
+    setBusy(true);
+    try {
+      await api('/api/support', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, text }),
+      });
+      setText('');
+      setNote('Message sent. Our team will get back to you.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="form contact-form" onSubmit={submit}>
+      <label>Name</label>
+      <input value={name} onChange={(e) => setName(e.target.value)} required />
+      <label>Email</label>
+      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <label>Message</label>
+      <textarea rows="5" value={text} onChange={(e) => setText(e.target.value)} required />
+      {error && <p className="error">{error}</p>}
+      {note && <p className="note">{note}</p>}
+      <button className="btn btn-primary" type="submit" disabled={busy}>
+        {busy ? 'Sending...' : 'Send Message'}
+      </button>
+    </form>
+  );
+}
+
 export default function Static({ kind }) {
   const page = COPY[kind] || COPY.help;
+  const isContact = kind === 'contact';
   return (
     <PageLayout>
       <p className="eyebrow">NexMarket</p>
@@ -72,9 +125,13 @@ export default function Static({ kind }) {
           <li key={line}>{line}</li>
         ))}
       </ul>
-      <Link className="btn btn-primary" to="/websites">
-        Browse listings
-      </Link>
+      {isContact ? (
+        <ContactForm />
+      ) : (
+        <Link className="btn btn-primary" to="/websites">
+          Browse listings
+        </Link>
+      )}
     </PageLayout>
   );
 }

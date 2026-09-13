@@ -1701,6 +1701,14 @@ main {
   margin: 0 0 24px;
 }
 
+.contact-form {
+  max-width: 560px;
+  background: #fff;
+  border: 1px solid #e8eef7;
+  border-radius: 18px;
+  padding: 22px;
+}
+
 .error {
   color: #be123c;
 }

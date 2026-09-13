@@ -72,9 +72,14 @@ export default function Navbar() {
               {menu && (
                 <div className="user-menu">
                   {user.role === 'admin' ? (
-                    <NavLink to="/admin" onClick={() => setMenu(false)}>
-                      Admin Panel
-                    </NavLink>
+                    <>
+                      <NavLink to="/admin" onClick={() => setMenu(false)}>
+                        Admin Panel
+                      </NavLink>
+                      <NavLink to="/admin/messages" onClick={() => setMenu(false)}>
+                        Messages
+                      </NavLink>
+                    </>
                   ) : (
                     <>
                       <NavLink to="/dashboard" onClick={() => setMenu(false)}>
