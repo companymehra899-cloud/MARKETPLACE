@@ -423,7 +423,7 @@ export default function ListingDetail() {
       <div className="ld-tabs">
         {[
           ['overview', 'Overview'],
-          ['screenshots', 'Screenshots'],
+          ['preview', 'Demo/Live Preview'],
           ['technology', 'Tech Details'],
           ...(!isApp ? [['website', 'Website Info']] : []),
         ].map(([key, label]) => (
@@ -445,16 +445,18 @@ export default function ListingDetail() {
         </section>
       )}
 
-      {tab === 'screenshots' && (
+      {tab === 'preview' && (
         <section className="ld-about">
-          <h2>Screenshots</h2>
-          <div className="shot-grid">
-            {photos.map((src, i) => (
-              <button key={src} type="button" onClick={() => setShot(i)}>
-                <img src={src} alt={`${listing.name} screenshot ${i + 1}`} />
-              </button>
-            ))}
-          </div>
+          <h2>Demo/Live Preview</h2>
+          {listing.liveUrl ? (
+            <p>
+              <a href={listing.liveUrl} target="_blank" rel="noreferrer">
+                {listing.liveUrl}
+              </a>
+            </p>
+          ) : (
+            <p>No live preview listed yet.</p>
+          )}
         </section>
       )}
 
