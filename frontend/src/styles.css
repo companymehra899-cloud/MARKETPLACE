@@ -1193,7 +1193,7 @@ main {
 }
 
 .sell-head-copy {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -1207,24 +1207,23 @@ main {
 }
 
 .sell-sub {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: #64748b;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 1.35;
   font-weight: 400;
 }
 
 .sell-desc {
-  margin: 10px 0 0;
+  margin: 14px 0 0;
   color: #64748b;
   font-size: 15px;
-  line-height: 1.45;
+  line-height: 1.55;
   font-weight: 400;
-  white-space: nowrap;
 }
 
 .sell-quota {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: #64748b;
   font-size: 15px;
   line-height: 1.4;
