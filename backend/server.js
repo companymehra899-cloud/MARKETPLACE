@@ -238,6 +238,7 @@ app.post('/api/listings', auth, (req, res) => {
     liveUrl,
     monetization,
     appSize,
+    domainAge,
   } = req.body || {};
   if (!type || !name || !price || !description) {
     return res.status(400).json({ error: 'Type, name, price and description required' });
@@ -285,7 +286,7 @@ app.post('/api/listings', auth, (req, res) => {
     cover: 'generic',
     appSize: type === 'app' ? String(appSize || '').trim() || '—' : '',
     minAndroid: type === 'app' ? 'Android 5.0+' : '',
-    domainAge: type === 'website' ? '—' : '',
+    domainAge: type === 'website' ? String(domainAge || '').trim() || '—' : '',
     userStats: {
       downloads: type === 'app' ? String(downloads || '0+') : String(traffic || '0'),
       users: '—',
@@ -317,6 +318,7 @@ app.patch('/api/listings/:id', auth, (req, res) => {
     liveUrl,
     monetization,
     appSize,
+    domainAge,
   } = req.body || {};
   if (type && type !== 'website' && type !== 'app') {
     return res.status(400).json({ error: 'Type must be website or app' });
@@ -330,6 +332,10 @@ app.patch('/api/listings/:id', auth, (req, res) => {
   if (listing.type === 'app' && downloads !== undefined) listing.downloads = String(downloads || '0+');
   if (listing.type === 'app' && appSize !== undefined) listing.appSize = String(appSize || '').trim() || '—';
   if (listing.type !== 'app') listing.appSize = '';
+  if (listing.type === 'website' && domainAge !== undefined) {
+    listing.domainAge = String(domainAge || '').trim() || '—';
+  }
+  if (listing.type !== 'website') listing.domainAge = '';
   if (description) {
     listing.description = String(description);
     listing.subtitle = String(description).slice(0, 140);

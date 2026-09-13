@@ -42,6 +42,7 @@ const empty = {
   liveUrl: '',
   monetization: '',
   appSize: '',
+  domainAge: '',
 };
 
 const WEB_CATS = [
@@ -129,6 +130,7 @@ export default function Sell() {
           liveUrl: l.liveUrl || '',
           monetization: String(l.monetization || ''),
           appSize: l.appSize && l.appSize !== '—' ? l.appSize : '',
+          domainAge: l.domainAge && l.domainAge !== '—' ? l.domainAge : '',
         });
         setCustomCategory(known ? '' : l.category || '');
         setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
@@ -270,36 +272,50 @@ export default function Sell() {
           <label>Name</label>
           <input value={form.name} onChange={(e) => set('name', e.target.value)} required />
 
-          <label>Category</label>
-          <select
-            value={form.category === 'Custom' || customCategory ? 'Custom' : form.category}
-            onChange={(e) => {
-              if (e.target.value === 'Custom') {
-                setCustomCategory('');
-                set('category', 'Custom');
-              } else {
-                setCustomCategory('');
-                set('category', e.target.value);
-              }
-            }}
-            required
-          >
-            {cats.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-          {(form.category === 'Custom' || customCategory) && (
-            <input
-              className="custom-category"
-              value={customCategory}
-              onChange={(e) => {
-                setCustomCategory(e.target.value);
-                set('category', e.target.value || 'Custom');
-              }}
-              placeholder="Enter your category"
-              required
-            />
-          )}
+          <div className="row">
+            <div>
+              <label>Category</label>
+              <select
+                value={form.category === 'Custom' || customCategory ? 'Custom' : form.category}
+                onChange={(e) => {
+                  if (e.target.value === 'Custom') {
+                    setCustomCategory('');
+                    set('category', 'Custom');
+                  } else {
+                    setCustomCategory('');
+                    set('category', e.target.value);
+                  }
+                }}
+                required
+              >
+                {cats.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+              {(form.category === 'Custom' || customCategory) && (
+                <input
+                  className="custom-category"
+                  value={customCategory}
+                  onChange={(e) => {
+                    setCustomCategory(e.target.value);
+                    set('category', e.target.value || 'Custom');
+                  }}
+                  placeholder="Enter your category"
+                  required
+                />
+              )}
+            </div>
+            {!isApp && (
+              <div>
+                <label>Domain age</label>
+                <input
+                  value={form.domainAge}
+                  onChange={(e) => set('domainAge', e.target.value)}
+                  placeholder="2 Years"
+                />
+              </div>
+            )}
+          </div>
 
           <div className="row">
             <div>
