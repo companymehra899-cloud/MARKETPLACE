@@ -307,6 +307,21 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   res.json({ ok: true, message: 'OTP sent to your email. It is valid for 10 minutes.' });
 });
 
+app.post('/api/auth/verify-otp', (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const otp = String(req.body?.otp || '').trim();
+  if (!email || !otp) {
+    return res.status(400).json({ error: 'Email and OTP required' });
+  }
+  const record = otps.get(email);
+  if (!record || record.expiresAt < Date.now()) {
+    otps.delete(email);
+    return res.status(400).json({ error: 'OTP expired. Request a new one.' });
+  }
+  if (record.code !== otp) return res.status(400).json({ error: 'Invalid OTP' });
+  res.json({ ok: true });
+});
+
 app.post('/api/auth/reset-password', (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const otp = String(req.body?.otp || '').trim();

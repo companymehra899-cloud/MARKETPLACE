@@ -49,6 +49,24 @@ export default function Auth({ mode }) {
     }
   }
 
+  async function verifyOtp(e) {
+    e.preventDefault();
+    setError('');
+    setNote('');
+    setBusy(true);
+    try {
+      await api('/api/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp }),
+      });
+      setStep('reset');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function resetPassword(e) {
     e.preventDefault();
     setError('');
@@ -107,8 +125,8 @@ export default function Auth({ mode }) {
         <div className="auth-card">
           <p className="eyebrow">Verify OTP</p>
           <h1>Enter OTP</h1>
-          <p className="lede">Enter the 6-digit OTP sent to {email} and set a new password.</p>
-          <form className="form" onSubmit={resetPassword}>
+          <p className="lede">Enter the 6-digit OTP sent to {email}.</p>
+          <form className="form" onSubmit={verifyOtp}>
             <label>OTP</label>
             <input
               value={otp}
@@ -117,6 +135,29 @@ export default function Auth({ mode }) {
               maxLength={6}
               required
             />
+            {error && <p className="error">{error}</p>}
+            <button className="btn btn-primary full" type="submit" disabled={busy}>
+              {busy ? 'Verifying...' : 'Verify OTP'}
+            </button>
+          </form>
+          <p className="switch">
+            <button type="button" className="text-link" onClick={() => { setStep('forgot'); setError(''); setOtp(''); }}>
+              Use a different email
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLogin && step === 'reset') {
+    return (
+      <div className="auth-wrap">
+        <div className="auth-card">
+          <p className="eyebrow">Set new password</p>
+          <h1>New Password</h1>
+          <p className="lede">Choose a new password for {email}.</p>
+          <form className="form" onSubmit={resetPassword}>
             <label>New password</label>
             <input
               type="password"
@@ -139,8 +180,8 @@ export default function Auth({ mode }) {
             </button>
           </form>
           <p className="switch">
-            <button type="button" className="text-link" onClick={() => { setStep('forgot'); setError(''); setOtp(''); }}>
-              Use a different email
+            <button type="button" className="text-link" onClick={() => { setStep('otp'); setError(''); setNewPassword(''); setConfirmPassword(''); }}>
+              Back to OTP
             </button>
           </p>
         </div>
