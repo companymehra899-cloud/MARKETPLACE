@@ -48,6 +48,51 @@ app.use(persistMiddleware);
 
 const tokens = new Map();
 const otps = new Map();
+const rateBuckets = new Map();
+
+const MAX_OTP_ATTEMPTS = 5;
+
+function clientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return String(forwarded).split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+function sweepRateBuckets() {
+  const now = Date.now();
+  for (const [key, entry] of rateBuckets) {
+    if (entry.resetAt <= now) rateBuckets.delete(key);
+  }
+}
+
+const rateSweep = setInterval(sweepRateBuckets, 5 * 60 * 1000);
+if (rateSweep.unref) rateSweep.unref();
+
+function createRateLimiter({ windowMs, max }) {
+  return function rateLimit(req, res, next) {
+    const now = Date.now();
+    const key = clientIp(req);
+    let entry = rateBuckets.get(key);
+    if (!entry || entry.resetAt <= now) {
+      entry = { count: 0, resetAt: now + windowMs };
+      rateBuckets.set(key, entry);
+    }
+    entry.count += 1;
+    if (entry.count > max) {
+      const retryAfter = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+      res.set('Retry-After', String(retryAfter));
+      return res
+        .status(429)
+        .json({ error: `Too many attempts. Please try again in ${retryAfter}s.` });
+    }
+    next();
+  };
+}
+
+const loginLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
+const registerLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, max: 20 });
+const forgotLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 });
+const otpLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
 
 function auth(req, res, next) {
   const header = req.headers.authorization || '';
@@ -196,7 +241,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, name: 'NexMarket' });
 });
 
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', registerLimiter, (req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email and password required' });
@@ -228,7 +273,7 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', loginLimiter, (req, res) => {
   const { email, password } = req.body || {};
   const user = users.find(
     (u) => u.email.toLowerCase() === String(email || '').toLowerCase() && u.password === password
@@ -283,7 +328,28 @@ app.patch('/api/auth/password', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/auth/forgot-password', async (req, res) => {
+function consumeOtp(email, otp) {
+  const record = otps.get(email);
+  if (!record || record.expiresAt < Date.now()) {
+    otps.delete(email);
+    return { ok: false, status: 400, error: 'OTP expired. Request a new one.' };
+  }
+  if (record.code !== otp) {
+    record.attempts = (Number(record.attempts) || 0) + 1;
+    if (record.attempts >= MAX_OTP_ATTEMPTS) {
+      otps.delete(email);
+      return {
+        ok: false,
+        status: 429,
+        error: 'Too many invalid OTP attempts. Request a new OTP.',
+      };
+    }
+    return { ok: false, status: 400, error: 'Invalid OTP' };
+  }
+  return { ok: true };
+}
+
+app.post('/api/auth/forgot-password', forgotLimiter, async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   if (!email) return res.status(400).json({ error: 'Email required' });
   const user = users.find((u) => u.email.toLowerCase() === email);
@@ -296,38 +362,30 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     console.error('OTP email failed:', err.message);
     return res.status(err.status || 500).json({ error: err.message || 'Could not send OTP email' });
   }
-  otps.set(email, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
+  otps.set(email, { code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 });
   res.json({ ok: true, message: 'OTP sent to your email. It is valid for 10 minutes.' });
 });
 
-app.post('/api/auth/verify-otp', (req, res) => {
+app.post('/api/auth/verify-otp', otpLimiter, (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const otp = String(req.body?.otp || '').trim();
   if (!email || !otp) {
     return res.status(400).json({ error: 'Email and OTP required' });
   }
-  const record = otps.get(email);
-  if (!record || record.expiresAt < Date.now()) {
-    otps.delete(email);
-    return res.status(400).json({ error: 'OTP expired. Request a new one.' });
-  }
-  if (record.code !== otp) return res.status(400).json({ error: 'Invalid OTP' });
+  const result = consumeOtp(email, otp);
+  if (!result.ok) return res.status(result.status).json({ error: result.error });
   res.json({ ok: true });
 });
 
-app.post('/api/auth/reset-password', (req, res) => {
+app.post('/api/auth/reset-password', otpLimiter, (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const otp = String(req.body?.otp || '').trim();
   const newPassword = String(req.body?.newPassword || '');
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ error: 'Email, OTP and new password required' });
   }
-  const record = otps.get(email);
-  if (!record || record.expiresAt < Date.now()) {
-    otps.delete(email);
-    return res.status(400).json({ error: 'OTP expired. Request a new one.' });
-  }
-  if (record.code !== otp) return res.status(400).json({ error: 'Invalid OTP' });
+  const result = consumeOtp(email, otp);
+  if (!result.ok) return res.status(result.status).json({ error: result.error });
   const user = users.find((u) => u.email.toLowerCase() === email);
   if (!user) return res.status(404).json({ error: 'No account found with this email' });
   if (newPassword.length < 6) {
