@@ -146,7 +146,7 @@ export default function Home() {
         <div>
           <IconCube />
           <div>
-            <b>1,200+</b>
+            <b>1,000+</b>
             <span>Projects Listed</span>
           </div>
         </div>
@@ -248,6 +248,29 @@ export default function Home() {
               <span className="num">4</span> Complete the Deal
             </h3>
             <p>Transfer ownership safely and grow your business.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section how faq" id="faq">
+        <h2>Frequently Asked Questions</h2>
+        <p className="sub">Quick answers before you buy or sell digital projects.</p>
+        <div className="faq-list">
+          <div>
+            <h3>How do I sell a website or Android app?</h3>
+            <p>Create a free account, list your project, and wait for admin approval. Buyers can then send offers.</p>
+          </div>
+          <div>
+            <h3>Is listing free?</h3>
+            <p>Yes. Free accounts can create 3 listings. After that, ₹100 unlocks 5 extra listings after admin UTR approval.</p>
+          </div>
+          <div>
+            <h3>How do buyers and sellers complete a deal?</h3>
+            <p>Talk on NexMarket, agree a price in INR, then transfer ownership using the safety tips on the listing.</p>
+          </div>
+          <div>
+            <h3>I forgot my password. What should I do?</h3>
+            <p>Use Forgot Password on the login page. A 6-digit OTP is sent to your email so you can set a new password.</p>
           </div>
         </div>
       </section>

@@ -986,6 +986,32 @@ main {
   padding-top: 18px;
 }
 
+.faq-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 36px;
+  text-align: left;
+}
+
+.faq-list > div {
+  background: #edf4ff;
+  border-radius: 24px;
+  padding: 24px 28px;
+}
+
+.faq-list h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.faq-list p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .cta-wrap {
   max-width: 1200px;
   margin: 0 auto 48px;
