@@ -1,4 +1,5 @@
 const { MongoClient } = require('mongodb');
+const { v4: uuid } = require('uuid');
 const {
   users,
   listings,
@@ -72,11 +73,44 @@ function stripDemoAccounts() {
   return true;
 }
 
+function ensureAdmin() {
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) return false;
+
+  const normalized = String(email).trim().toLowerCase();
+  const existing = users.find((u) => u.email.toLowerCase() === normalized);
+
+  if (existing) {
+    existing.role = 'admin';
+    existing.verified = true;
+    existing.blocked = false;
+    existing.password = String(password);
+    return true;
+  }
+
+  users.push({
+    id: uuid(),
+    name: process.env.ADMIN_NAME || 'Admin',
+    email: normalized,
+    password: String(password),
+    role: 'admin',
+    verified: true,
+    blocked: false,
+    phone: '',
+    extraListingSlots: 0,
+    createdAt: new Date().toISOString(),
+  });
+  return true;
+}
+
 async function connectAndLoad() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
     seed();
+    const hasAdmin = ensureAdmin();
     console.log('No MONGODB_URI set. Using in-memory data.');
+    if (!hasAdmin) console.log('Set ADMIN_EMAIL and ADMIN_PASSWORD to create an admin account.');
     return;
   }
 
@@ -93,13 +127,15 @@ async function connectAndLoad() {
 
   if (!hasData) {
     seed();
+    const hasAdmin = ensureAdmin();
     await persist();
-    console.log('MongoDB empty. Seeded admin account.');
-  } else if (stripDemoAccounts()) {
-    await persist();
-    console.log('MongoDB connected. Removed demo accounts.');
+    console.log('MongoDB empty. Initialized data.');
+    if (!hasAdmin) console.log('Set ADMIN_EMAIL and ADMIN_PASSWORD to create an admin account.');
   } else {
-    console.log('MongoDB connected. Loaded saved data.');
+    const removedDemo = stripDemoAccounts();
+    const hasAdmin = ensureAdmin();
+    if (removedDemo || hasAdmin) await persist();
+    console.log(removedDemo ? 'MongoDB connected. Removed demo accounts.' : 'MongoDB connected. Loaded saved data.');
   }
 }
 

@@ -23,6 +23,18 @@ npm run dev
 
 Frontend proxies `/api` to `http://localhost:3001`.
 
+## Admin account
+
+The admin account is created from environment variables, so the credentials are never stored in the repo. Copy `backend/.env.example` to `backend/.env` and set:
+
+```bash
+ADMIN_NAME=Admin
+ADMIN_EMAIL=youremail@gmail.com
+ADMIN_PASSWORD=your-secret-password
+```
+
+On startup the backend creates this admin account. On a hosted deploy, set the same variables in the host dashboard instead of a file.
+
 ## Email OTP
 
 Forgot password sends a 6-digit OTP by email. Copy `backend/.env.example` to `backend/.env` and set SMTP values.

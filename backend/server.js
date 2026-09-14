@@ -6,6 +6,9 @@ const { v4: uuid } = require('uuid');
 const { users, listings, offers, messages, watchlist, reports, payments } = require('./data');
 const { connectAndLoad, persistMiddleware } = require('./db');
 const { sendOtpEmail } = require('./mail');
+const { loadEnv } = require('./env');
+
+loadEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -186,14 +189,13 @@ app.post('/api/auth/register', (req, res) => {
   if (users.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) {
     return res.status(400).json({ error: 'Email already registered' });
   }
-  const makeAdmin = !users.some((u) => u.role === 'admin');
   const user = {
     id: uuid(),
     name: String(name).trim(),
     email: String(email).trim().toLowerCase(),
     password: String(password),
-    role: makeAdmin ? 'admin' : 'user',
-    verified: makeAdmin,
+    role: 'user',
+    verified: false,
     blocked: false,
     phone: '',
     extraListingSlots: 0,
