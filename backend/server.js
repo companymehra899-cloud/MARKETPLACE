@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -968,10 +969,85 @@ app.get('/robots.txt', (req, res) => {
 });
 
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
-if (fs.existsSync(distPath)) {
-  const indexFile = path.join(distPath, 'index.html');
-  const indexHtml = fs.readFileSync(indexFile, 'utf8');
+const ssrPath = path.join(__dirname, '..', 'frontend', 'dist-ssr', 'entry-server.js');
 
+let indexHtml = null;
+let ssrRender = null;
+let ssrEnabled = false;
+
+if (fs.existsSync(distPath)) {
+  indexHtml = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
+}
+
+async function setupSsr() {
+  if (!indexHtml || !fs.existsSync(ssrPath)) return;
+  try {
+    const mod = await import(pathToFileURL(ssrPath).href);
+    if (typeof mod.render === 'function') {
+      ssrRender = mod.render;
+      ssrEnabled = true;
+      console.log('SSR enabled.');
+    }
+  } catch (err) {
+    console.warn('SSR disabled:', err && err.message);
+  }
+}
+
+function buildPreload(reqPath) {
+  const match = /^\/listing\/([^/]+)\/?$/.exec(reqPath);
+  if (!match) return {};
+  const listing = listings.find((l) => l.id === match[1]);
+  if (!listing || listing.removed || listing.status !== 'approved') return {};
+  return { listing: publicListing(listing) };
+}
+
+function serializePreload(preload) {
+  return JSON.stringify(preload || {}).replace(/</g, '\\u003c').replace(/\u2028|\u2029/g, '');
+}
+
+function injectHead(head, origin) {
+  return head.replace(/url\(["']?\/([^)"']*)["']?\)/g, `url(${origin}/$1)`);
+}
+
+function renderPage(req) {
+  const origin = siteBaseUrl(req);
+  const preload = buildPreload(req.path);
+
+  if (!ssrEnabled) {
+    return indexHtml
+      .replace('<!--app-html-->', '')
+      .split('__SITE_URL__')
+      .join(origin);
+  }
+
+  let html = '';
+  let head = '';
+  try {
+    const result = ssrRender(req.originalUrl, { origin, preload });
+    html = result.html || '';
+    head = result.head || '';
+  } catch (err) {
+    console.error('SSR failed:', err && err.message);
+    html = '';
+    head = '';
+  }
+
+  let page = indexHtml;
+  if (head) {
+    page = page.replace(/<!--seo-start-->[\s\S]*?<!--seo-end-->/, injectHead(head, origin));
+  }
+  page = page.replace('<!--app-html-->', html);
+  if (html) {
+    page = page.replace('<div id="root"', '<div id="root" data-ssr="1"');
+  }
+  page = page.replace(
+    '</head>',
+    `<script>window.__PRELOAD__=${serializePreload(preload)}</script>\n  </head>`
+  );
+  return page;
+}
+
+if (indexHtml) {
   app.use(
     express.static(distPath, {
       index: false,
@@ -989,14 +1065,12 @@ if (fs.existsSync(distPath)) {
 
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
-    res
-      .type('html')
-      .set('Cache-Control', 'no-cache')
-      .send(indexHtml.split('__SITE_URL__').join(siteBaseUrl(req)));
+    res.type('html').set('Cache-Control', 'no-cache').send(renderPage(req));
   });
 }
 
 connectAndLoad()
+  .then(setupSsr)
   .then(() => {
     logConfigStatus();
     app.listen(PORT, '0.0.0.0', () => {

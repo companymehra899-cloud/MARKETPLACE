@@ -1,11 +1,17 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { setPreload } from './preload.js';
 import './styles.css';
 
-createRoot(document.getElementById('root')).render(
+const preload = typeof window !== 'undefined' && window.__PRELOAD__ ? window.__PRELOAD__ : {};
+setPreload(preload);
+
+const container = document.getElementById('root');
+
+const tree = (
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
@@ -14,3 +20,9 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+if (container.dataset.ssr === '1') {
+  hydrateRoot(container, tree);
+} else {
+  createRoot(container).render(tree);
+}

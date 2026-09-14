@@ -4,7 +4,9 @@ import { api } from '../api';
 import { inr, typeLabel } from '../format.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import Cover from '../components/Cover.jsx';
-import Seo, { truncate } from '../components/Seo.jsx';
+import Seo from '../components/Seo.jsx';
+import { listingMeta } from '../seoMeta.js';
+import { getPreload } from '../preload.js';
 
 const WEB_GALLERIES = {
   travel: [
@@ -174,7 +176,9 @@ export default function ListingDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [listing, setListing] = useState(null);
+  const preloaded = getPreload().listing;
+  const initial = preloaded && preloaded.id === id ? preloaded : null;
+  const [listing, setListing] = useState(initial);
   const [related, setRelated] = useState([]);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('overview');
@@ -184,11 +188,14 @@ export default function ListingDetail() {
   useEffect(() => {
     setTab('overview');
     setShot(0);
-    api(`/api/listings/${id}`)
-      .then((d) => {
-        setListing(d.listing);
-      })
-      .catch((e) => setError(e.message));
+    if (!initial) {
+      setListing(null);
+      api(`/api/listings/${id}`)
+        .then((d) => {
+          setListing(d.listing);
+        })
+        .catch((e) => setError(e.message));
+    }
     api('/api/listings')
       .then((d) => setRelated((d.listings || []).filter((l) => l.id !== id)))
       .catch(() => {});
@@ -227,63 +234,17 @@ export default function ListingDetail() {
   const crumbCat = listing.category?.split('&')[0]?.trim() || listing.category;
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const categoryPath = isApp ? '/apps' : '/websites';
-  const listingUrl = `${origin}/listing/${listing.id}`;
-  const uploadedShot = (listing.screenshots || []).find((s) => /^https?:\/\//.test(s));
-  const seoImage = uploadedShot || (WEB_GALLERIES[listing.cover] || WEB_GALLERIES.generic)[0];
-  const seoDescription = truncate(
-    listing.subtitle ||
-      listing.description ||
-      `${listing.name} is available for ${inr(listing.price)} on NexMarket.`
-  );
-  const productLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: listing.name,
-    description: listing.subtitle || listing.description || seoDescription,
-    image: [seoImage],
-    category: listing.category,
-    url: listingUrl,
-    brand: { '@type': 'Brand', name: 'NexMarket' },
-    offers: {
-      '@type': 'Offer',
-      url: listingUrl,
-      price: Number(listing.price) || 0,
-      priceCurrency: 'INR',
-      availability: 'https://schema.org/InStock',
-      seller: { '@type': 'Person', name: listing.seller?.name || 'Seller' },
-    },
-  };
-  const breadcrumbLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: isApp ? 'Android Apps' : 'Websites',
-        item: `${origin}${categoryPath}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: crumbCat || listing.category,
-        item: `${origin}${categoryPath}?category=${encodeURIComponent(listing.category || '')}`,
-      },
-      { '@type': 'ListItem', position: 4, name: listing.name, item: listingUrl },
-    ],
-  };
+  const meta = listingMeta(listing, origin);
 
   return (
     <div className="detail-page">
       <Seo
-        title={`${listing.name} — ${inr(listing.price)}`}
-        description={seoDescription}
-        image={seoImage}
-        type="product"
-        path={`/listing/${listing.id}`}
-        jsonLd={[productLd, breadcrumbLd]}
+        title={meta.title}
+        description={meta.description}
+        image={meta.image}
+        type={meta.type}
+        path={meta.path}
+        jsonLd={meta.jsonLd}
       />
       <div className="crumbs">
         <Link to="/">Home</Link>
