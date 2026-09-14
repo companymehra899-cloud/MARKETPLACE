@@ -126,15 +126,16 @@ async function connectAndLoad() {
   }
 
   if (!hasData) {
-    seed();
+    const seeded = seed();
     const hasAdmin = ensureAdmin();
     await persist();
-    console.log('MongoDB empty. Initialized data.');
+    console.log(`MongoDB empty. Initialized data (${seeded} catalog items).`);
     if (!hasAdmin) console.log('Set ADMIN_EMAIL and ADMIN_PASSWORD to create an admin account.');
   } else {
     const removedDemo = stripDemoAccounts();
+    const seeded = seed();
     const hasAdmin = ensureAdmin();
-    if (removedDemo || hasAdmin) await persist();
+    if (removedDemo || hasAdmin || seeded) await persist();
     console.log(removedDemo ? 'MongoDB connected. Removed demo accounts.' : 'MongoDB connected. Loaded saved data.');
   }
 }
