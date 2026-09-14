@@ -23,6 +23,7 @@ const CONFIG_VARS = [
   'SMTP_USER',
   'SMTP_PASS',
   'MAIL_FROM',
+  'CORS_ORIGINS',
 ];
 
 function logConfigStatus() {
@@ -41,8 +42,27 @@ function logConfigStatus() {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const DEFAULT_CORS_ORIGINS = [
+  'https://websitesell.online',
+  'https://www.websitesell.online',
+];
+const allowedCorsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
+  : DEFAULT_CORS_ORIGINS;
+
+function corsOrigin(origin, callback) {
+  if (!origin) return callback(null, true);
+  if (allowedCorsOrigins.includes('*') || allowedCorsOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return callback(null, true);
+  }
+  return callback(null, false);
+}
+
 app.use(compression());
-app.use(cors());
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: '10mb' }));
 app.use(persistMiddleware);
 
