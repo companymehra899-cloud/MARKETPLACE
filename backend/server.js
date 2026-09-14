@@ -10,6 +10,24 @@ const { loadEnv } = require('./env');
 
 loadEnv();
 
+const CONFIG_VARS = [
+  'ADMIN_EMAIL',
+  'ADMIN_PASSWORD',
+  'MONGODB_URI',
+  'SMTP_HOST',
+  'SMTP_PORT',
+  'SMTP_USER',
+  'SMTP_PASS',
+  'MAIL_FROM',
+];
+
+function logConfigStatus() {
+  const present = CONFIG_VARS.filter((key) => process.env[key]);
+  const missing = CONFIG_VARS.filter((key) => !process.env[key]);
+  console.log('Config vars present:', present.length ? present.join(', ') : 'none');
+  console.log('Config vars missing:', missing.length ? missing.join(', ') : 'none');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -860,6 +878,7 @@ if (fs.existsSync(distPath)) {
 
 connectAndLoad()
   .then(() => {
+    logConfigStatus();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`NexMarket API running on http://localhost:${PORT}`);
     });
