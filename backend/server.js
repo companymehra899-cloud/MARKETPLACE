@@ -972,7 +972,20 @@ if (fs.existsSync(distPath)) {
   const indexFile = path.join(distPath, 'index.html');
   const indexHtml = fs.readFileSync(indexFile, 'utf8');
 
-  app.use(express.static(distPath, { index: false }));
+  app.use(
+    express.static(distPath, {
+      index: false,
+      setHeaders(res, filePath) {
+        if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (/\.(png|jpe?g|webp|svg|gif|ico|woff2?|ttf|eot)$/i.test(filePath)) {
+          res.setHeader('Cache-Control', 'public, max-age=604800');
+        } else {
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+      },
+    })
+  );
 
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
