@@ -6,6 +6,7 @@ const { v4: uuid } = require('uuid');
 const { users, listings, offers, messages, watchlist, reports, payments } = require('./data');
 const { connectAndLoad, persistMiddleware } = require('./db');
 const { sendOtpEmail, mailProvider } = require('./mail');
+const { prepareScreenshots } = require('./images');
 const { loadEnv } = require('./env');
 
 loadEnv();
@@ -39,7 +40,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(persistMiddleware);
 
 const tokens = new Map();
@@ -71,8 +72,6 @@ function adminOnly(req, res, next) {
   next();
 }
 
-const MAX_SHOTS = 2;
-const MAX_SHOT_CHARS = 220000;
 const FREE_LISTING_LIMIT = 3;
 const LISTING_PACK_PRICE = 100;
 const LISTING_PACK_SLOTS = 5;
@@ -135,15 +134,6 @@ function publicPayment(p) {
         }
       : null,
   };
-}
-
-function sanitizeScreenshots(list) {
-  if (!Array.isArray(list)) return [];
-  return list
-    .filter((s) => typeof s === 'string')
-    .filter((s) => s.startsWith('data:image/') || /^https?:\/\//.test(s))
-    .filter((s) => s.length <= MAX_SHOT_CHARS)
-    .slice(0, MAX_SHOTS);
 }
 
 function listedOnNow() {
@@ -390,7 +380,7 @@ app.get('/api/listings/:id', optionalAuth, (req, res) => {
   res.json({ listing: publicListing(listing, { admin: isAdmin }) });
 });
 
-app.post('/api/listings', auth, (req, res) => {
+app.post('/api/listings', auth, async (req, res) => {
   const {
     type,
     name,
@@ -436,7 +426,7 @@ app.post('/api/listings', auth, (req, res) => {
     downloads: type === 'app' ? String(downloads || '0+') : '',
     description: desc,
     techStack: parseTech(techStack),
-    screenshots: sanitizeScreenshots(screenshots),
+    screenshots: await prepareScreenshots(screenshots),
     contact: req.user.email,
     phone: String(req.user.phone || '').trim(),
     liveUrl: type === 'website' ? String(liveUrl || '').trim() : '',
@@ -470,7 +460,7 @@ app.post('/api/listings', auth, (req, res) => {
   res.status(201).json({ listing: publicListing(listing) });
 });
 
-app.patch('/api/listings/:id', auth, (req, res) => {
+app.patch('/api/listings/:id', auth, async (req, res) => {
   const listing = listings.find((l) => l.id === req.params.id);
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
   if (listing.sellerId !== req.user.id && req.user.role !== 'admin') {
@@ -518,7 +508,7 @@ app.patch('/api/listings/:id', auth, (req, res) => {
     listing.subtitle = String(description).slice(0, 140);
   }
   if (techStack !== undefined) listing.techStack = parseTech(techStack);
-  if (screenshots) listing.screenshots = sanitizeScreenshots(screenshots);
+  if (screenshots) listing.screenshots = await prepareScreenshots(screenshots);
   if (monetization !== undefined) {
     listing.monetization = String(monetization == null ? '' : monetization).trim();
   }
@@ -887,6 +877,76 @@ app.patch('/api/admin/users/:id', auth, adminOnly, (req, res) => {
   if (user.role === 'admin') return res.status(400).json({ error: 'Cannot change admin account' });
   if (typeof req.body.blocked === 'boolean') user.blocked = req.body.blocked;
   res.json({ user: publicUser(user) });
+});
+
+const SITEMAP_STATIC_PAGES = [
+  { path: '/', changefreq: 'daily', priority: '1.0' },
+  { path: '/websites', changefreq: 'daily', priority: '0.9' },
+  { path: '/apps', changefreq: 'daily', priority: '0.9' },
+  { path: '/how-it-works', changefreq: 'monthly', priority: '0.5' },
+  { path: '/help', changefreq: 'monthly', priority: '0.5' },
+  { path: '/safety', changefreq: 'monthly', priority: '0.5' },
+  { path: '/contact', changefreq: 'monthly', priority: '0.4' },
+  { path: '/terms', changefreq: 'yearly', priority: '0.3' },
+  { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
+];
+
+function siteBaseUrl(req) {
+  const configured = process.env.SITE_URL || process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL;
+  if (configured) return configured.replace(/\/+$/, '');
+  const proto = String(req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
+  return `${proto}://${req.get('host')}`;
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function sitemapDate(value) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 10);
+  return date.toISOString().slice(0, 10);
+}
+
+app.get('/sitemap.xml', (req, res) => {
+  const base = siteBaseUrl(req);
+  const urls = SITEMAP_STATIC_PAGES.map((page) => ({
+    loc: `${base}${page.path}`,
+    lastmod: sitemapDate(),
+    changefreq: page.changefreq,
+    priority: page.priority,
+  }));
+
+  for (const listing of listings) {
+    if (listing.removed || listing.hiddenPublic || listing.status !== 'approved') continue;
+    urls.push({
+      loc: `${base}/listing/${listing.id}`,
+      lastmod: sitemapDate(listing.createdAt),
+      changefreq: 'weekly',
+      priority: '0.8',
+    });
+  }
+
+  const body = urls
+    .map(
+      (url) =>
+        `  <url>\n` +
+        `    <loc>${escapeXml(url.loc)}</loc>\n` +
+        `    <lastmod>${url.lastmod}</lastmod>\n` +
+        `    <changefreq>${url.changefreq}</changefreq>\n` +
+        `    <priority>${url.priority}</priority>\n` +
+        `  </url>`
+    )
+    .join('\n');
+
+  res
+    .type('application/xml')
+    .send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`);
 });
 
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
