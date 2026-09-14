@@ -272,6 +272,26 @@ export default function Home() {
             <h3>I forgot my password. What should I do?</h3>
             <p>Use Forgot Password on the login page. A 6-digit OTP is sent to your email so you can set a new password.</p>
           </div>
+          <div>
+            <h3>When does a listing go live?</h3>
+            <p>Every listing is reviewed by admin first. After approval it appears on Websites or Android Apps for buyers.</p>
+          </div>
+          <div>
+            <h3>Can I buy and sell with one account?</h3>
+            <p>Yes. One NexMarket login works for both. You can list projects and also send offers to other sellers.</p>
+          </div>
+          <div>
+            <h3>How do I contact a seller?</h3>
+            <p>Open the listing and send an offer or message. The seller gets it in their dashboard and can reply there.</p>
+          </div>
+          <div>
+            <h3>What if a listing looks fake?</h3>
+            <p>Report it from the listing page. Admin can remove it, and you should verify traffic or Play Console before paying.</p>
+          </div>
+          <div>
+            <h3>Does NexMarket take ownership of my project?</h3>
+            <p>No. NexMarket is only a marketplace. You keep ownership until you complete the transfer with the buyer.</p>
+          </div>
         </div>
       </section>
 
