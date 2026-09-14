@@ -12,6 +12,12 @@ function mailConfigured() {
   return resendConfigured() || smtpConfigured();
 }
 
+function mailProvider() {
+  if (resendConfigured()) return 'resend (HTTP API)';
+  if (smtpConfigured()) return 'smtp';
+  return 'none';
+}
+
 function mailFrom() {
   return (
     process.env.MAIL_FROM ||
@@ -82,4 +88,4 @@ async function sendOtpEmail(to, code) {
   await sendMail(to, subject, text, html);
 }
 
-module.exports = { mailConfigured, sendMail, sendOtpEmail };
+module.exports = { mailConfigured, mailProvider, sendMail, sendOtpEmail };

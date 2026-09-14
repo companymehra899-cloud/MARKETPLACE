@@ -5,7 +5,7 @@ const cors = require('cors');
 const { v4: uuid } = require('uuid');
 const { users, listings, offers, messages, watchlist, reports, payments } = require('./data');
 const { connectAndLoad, persistMiddleware } = require('./db');
-const { sendOtpEmail } = require('./mail');
+const { sendOtpEmail, mailProvider } = require('./mail');
 const { loadEnv } = require('./env');
 
 loadEnv();
@@ -27,6 +27,12 @@ function logConfigStatus() {
   const missing = CONFIG_VARS.filter((key) => !process.env[key]);
   console.log('Config vars present:', present.length ? present.join(', ') : 'none');
   console.log('Config vars missing:', missing.length ? missing.join(', ') : 'none');
+  console.log('Email provider:', mailProvider());
+  if (process.env.RENDER && !process.env.RESEND_API_KEY && process.env.SMTP_HOST) {
+    console.warn(
+      'WARNING: Render Free blocks SMTP ports 25/465/587. Set RESEND_API_KEY to send OTP email.'
+    );
+  }
 }
 
 const app = express();
