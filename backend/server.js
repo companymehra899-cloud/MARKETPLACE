@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const { v4: uuid } = require('uuid');
 const { users, listings, offers, messages, watchlist, reports, payments } = require('./data');
 const { connectAndLoad, persistMiddleware } = require('./db');
@@ -39,6 +40,7 @@ function logConfigStatus() {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+app.use(compression());
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(persistMiddleware);
