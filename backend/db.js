@@ -52,6 +52,7 @@ function persistSoon() {
 }
 
 const DEMO_EMAILS = new Set([
+  'admin@nexmarket.in',
   'ravi@seller.in',
   'arjun@buyer.in',
   'anand@seller.in',

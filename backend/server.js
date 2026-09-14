@@ -186,13 +186,14 @@ app.post('/api/auth/register', (req, res) => {
   if (users.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) {
     return res.status(400).json({ error: 'Email already registered' });
   }
+  const makeAdmin = !users.some((u) => u.role === 'admin');
   const user = {
     id: uuid(),
     name: String(name).trim(),
     email: String(email).trim().toLowerCase(),
     password: String(password),
-    role: 'user',
-    verified: false,
+    role: makeAdmin ? 'admin' : 'user',
+    verified: makeAdmin,
     blocked: false,
     phone: '',
     extraListingSlots: 0,
