@@ -967,10 +967,17 @@ app.get('/robots.txt', (req, res) => {
 
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  const indexFile = path.join(distPath, 'index.html');
+  const indexHtml = fs.readFileSync(indexFile, 'utf8');
+
+  app.use(express.static(distPath, { index: false }));
+
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(distPath, 'index.html'));
+    res
+      .type('html')
+      .set('Cache-Control', 'no-cache')
+      .send(indexHtml.split('__SITE_URL__').join(siteBaseUrl(req)));
   });
 }
 
