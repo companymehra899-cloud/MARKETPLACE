@@ -12,7 +12,6 @@ export default function Auth({ mode }) {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [sentOtp, setSentOtp] = useState('');
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
   const [step, setStep] = useState('form');
@@ -38,11 +37,10 @@ export default function Auth({ mode }) {
     setNote('');
     setBusy(true);
     try {
-      const data = await api('/api/auth/forgot-password', {
+      await api('/api/auth/forgot-password', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
-      setSentOtp(data.otp || '');
       setStep('otp');
     } catch (err) {
       setError(err.message);
@@ -69,7 +67,6 @@ export default function Auth({ mode }) {
       setOtp('');
       setNewPassword('');
       setConfirmPassword('');
-      setSentOtp('');
       setStep('form');
       setNote('Password updated. Login with your new password.');
     } catch (err) {
@@ -110,12 +107,7 @@ export default function Auth({ mode }) {
         <div className="auth-card">
           <p className="eyebrow">Verify OTP</p>
           <h1>Enter OTP</h1>
-          <p className="lede">Use the 6-digit OTP for {email} and set a new password.</p>
-          {sentOtp && (
-            <p className="otp-show">
-              Your OTP is <strong>{sentOtp}</strong>
-            </p>
-          )}
+          <p className="lede">Enter the 6-digit OTP sent to {email} and set a new password.</p>
           <form className="form" onSubmit={resetPassword}>
             <label>OTP</label>
             <input

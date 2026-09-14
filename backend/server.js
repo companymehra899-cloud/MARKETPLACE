@@ -5,6 +5,7 @@ const cors = require('cors');
 const { v4: uuid } = require('uuid');
 const { users, listings, offers, messages, watchlist, reports, payments } = require('./data');
 const { connectAndLoad, persistMiddleware } = require('./db');
+const { sendOtpEmail } = require('./mail');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -258,15 +259,21 @@ app.patch('/api/auth/password', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/auth/forgot-password', (req, res) => {
+app.post('/api/auth/forgot-password', async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   if (!email) return res.status(400).json({ error: 'Email required' });
   const user = users.find((u) => u.email.toLowerCase() === email);
   if (!user) return res.status(404).json({ error: 'No account found with this email' });
   if (user.blocked) return res.status(403).json({ error: 'This account is blocked' });
   const code = String(Math.floor(100000 + Math.random() * 900000));
+  try {
+    await sendOtpEmail(email, code);
+  } catch (err) {
+    console.error('OTP email failed:', err.message);
+    return res.status(err.status || 500).json({ error: err.message || 'Could not send OTP email' });
+  }
   otps.set(email, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
-  res.json({ ok: true, otp: code, message: 'OTP generated. It is valid for 10 minutes.' });
+  res.json({ ok: true, message: 'OTP sent to your email. It is valid for 10 minutes.' });
 });
 
 app.post('/api/auth/reset-password', (req, res) => {
