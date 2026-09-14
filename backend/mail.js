@@ -1,7 +1,23 @@
 const nodemailer = require('nodemailer');
 
-function mailConfigured() {
+function resendConfigured() {
+  return Boolean(process.env.RESEND_API_KEY);
+}
+
+function smtpConfigured() {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+function mailConfigured() {
+  return resendConfigured() || smtpConfigured();
+}
+
+function mailFrom() {
+  return (
+    process.env.MAIL_FROM ||
+    process.env.SMTP_USER ||
+    'NexMarket <onboarding@resend.dev>'
+  );
 }
 
 function transporter() {
@@ -16,21 +32,54 @@ function transporter() {
   });
 }
 
-async function sendOtpEmail(to, code) {
-  if (!mailConfigured()) {
-    const err = new Error('Email is not configured. Set SMTP_HOST, SMTP_USER and SMTP_PASS.');
-    err.status = 503;
-    throw err;
-  }
-
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER;
-  await transporter().sendMail({
-    from,
-    to,
-    subject: 'NexMarket password reset OTP',
-    text: `Your NexMarket OTP is ${code}. It is valid for 10 minutes. Do not share this code.`,
-    html: `<p>Your NexMarket OTP is <strong>${code}</strong>.</p><p>It is valid for 10 minutes. Do not share this code.</p>`,
+async function sendViaResend(to, subject, text, html) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from: mailFrom(), to: [to], subject, text, html }),
   });
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const body = await res.json();
+      detail = body && body.message ? `: ${body.message}` : '';
+    } catch (err) {
+      detail = '';
+    }
+    const error = new Error(`Resend API error (${res.status})${detail}`);
+    error.status = 502;
+    throw error;
+  }
 }
 
-module.exports = { mailConfigured, sendOtpEmail };
+async function sendViaSmtp(to, subject, text, html) {
+  await transporter().sendMail({ from: mailFrom(), to, subject, text, html });
+}
+
+async function sendMail(to, subject, text, html) {
+  if (resendConfigured()) {
+    await sendViaResend(to, subject, text, html);
+    return;
+  }
+  if (smtpConfigured()) {
+    await sendViaSmtp(to, subject, text, html);
+    return;
+  }
+  const err = new Error(
+    'Email is not configured. Set RESEND_API_KEY, or SMTP_HOST, SMTP_USER and SMTP_PASS.'
+  );
+  err.status = 503;
+  throw err;
+}
+
+async function sendOtpEmail(to, code) {
+  const subject = 'NexMarket password reset OTP';
+  const text = `Your NexMarket OTP is ${code}. It is valid for 10 minutes. Do not share this code.`;
+  const html = `<p>Your NexMarket OTP is <strong>${code}</strong>.</p><p>It is valid for 10 minutes. Do not share this code.</p>`;
+  await sendMail(to, subject, text, html);
+}
+
+module.exports = { mailConfigured, sendMail, sendOtpEmail };

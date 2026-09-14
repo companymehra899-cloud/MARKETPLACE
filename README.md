@@ -41,12 +41,22 @@ The backend logs which config variables are present at startup, so you can confi
 
 ## Email OTP
 
-Forgot password sends a 6-digit OTP by email. Copy `backend/.env.example` to `backend/.env` and set SMTP values.
+Forgot password sends a 6-digit OTP by email. Copy `backend/.env.example` to `backend/.env` and pick one provider.
 
-Gmail needs an App Password, not the normal login password. Then start the backend with those env vars, for example:
+### Option A: Resend HTTP API (recommended, works on Render Free)
 
 ```bash
-cd backend
+RESEND_API_KEY=re_your_api_key
+MAIL_FROM=NexMarket <onboarding@resend.dev>
+```
+
+`onboarding@resend.dev` works without a verified domain but only delivers to the Resend account owner's email. For other recipients, verify a domain in Resend and use an address on it.
+
+### Option B: SMTP
+
+Gmail needs an App Password, not the normal login password.
+
+```bash
 export SMTP_HOST=smtp.gmail.com
 export SMTP_PORT=587
 export SMTP_USER=youremail@gmail.com
@@ -59,4 +69,4 @@ One account is used for both buying and selling. Free accounts can create 3 list
 
 ### Render note
 
-Render Free web services cannot send outbound traffic on ports `25`, `465`, or `587`, so Gmail SMTP will not work on the Free plan. Use a paid instance for SMTP, or switch to an HTTP email API such as Resend, Brevo, or SendGrid.
+Render Free web services cannot send outbound traffic on ports `25`, `465`, or `587`, so Gmail SMTP will not work on the Free plan. Use Option A (Resend, which sends over HTTPS) instead. SMTP requires a paid instance.
