@@ -180,6 +180,9 @@ app.post('/api/auth/register', (req, res) => {
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email and password required' });
   }
+  if (String(password).length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
   if (users.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) {
     return res.status(400).json({ error: 'Email already registered' });
   }
