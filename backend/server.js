@@ -85,8 +85,40 @@ function sweepRateBuckets() {
   }
 }
 
-const rateSweep = setInterval(sweepRateBuckets, 5 * 60 * 1000);
-if (rateSweep.unref) rateSweep.unref();
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function sweepExpiredTokens() {
+  const now = Date.now();
+  for (const [token, entry] of tokens) {
+    if (!entry || entry.expiresAt <= now) tokens.delete(token);
+  }
+}
+
+function sweepCaches() {
+  sweepRateBuckets();
+  sweepExpiredTokens();
+}
+
+const cacheSweep = setInterval(sweepCaches, 5 * 60 * 1000);
+if (cacheSweep.unref) cacheSweep.unref();
+
+function issueToken(userId) {
+  const token = uuid();
+  tokens.set(token, { userId, expiresAt: Date.now() + SESSION_TTL_MS });
+  return token;
+}
+
+function resolveSession(token) {
+  if (!token) return null;
+  const entry = tokens.get(token);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    tokens.delete(token);
+    return null;
+  }
+  entry.expiresAt = Date.now() + SESSION_TTL_MS;
+  return entry.userId;
+}
 
 function createRateLimiter({ windowMs, max }) {
   return function rateLimit(req, res, next) {
@@ -117,7 +149,7 @@ const otpLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
 function auth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.replace('Bearer ', '');
-  const userId = tokens.get(token);
+  const userId = resolveSession(token);
   if (!userId) return res.status(401).json({ error: 'Login required' });
   req.user = users.find((u) => u.id === userId);
   if (!req.user) return res.status(401).json({ error: 'Invalid session' });
@@ -128,7 +160,7 @@ function auth(req, res, next) {
 function optionalAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.replace('Bearer ', '');
-  const userId = tokens.get(token);
+  const userId = resolveSession(token);
   req.user = users.find((u) => u.id === userId) || null;
   next();
 }
@@ -285,8 +317,7 @@ app.post('/api/auth/register', registerLimiter, (req, res) => {
     createdAt: new Date().toISOString(),
   };
   users.push(user);
-  const token = uuid();
-  tokens.set(token, user.id);
+  const token = issueToken(user.id);
   res.json({
     token,
     user: publicUser(user),
@@ -300,8 +331,7 @@ app.post('/api/auth/login', loginLimiter, (req, res) => {
   );
   if (!user) return res.status(401).json({ error: 'Invalid email or password' });
   if (user.blocked) return res.status(403).json({ error: 'This account is blocked' });
-  const token = uuid();
-  tokens.set(token, user.id);
+  const token = issueToken(user.id);
   res.json({
     token,
     user: publicUser(user),
