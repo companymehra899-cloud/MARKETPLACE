@@ -1025,6 +1025,30 @@ main {
   border-radius: 12px;
 }
 
+.seo-market {
+  max-width: 860px;
+  text-align: left;
+  padding-bottom: 56px;
+}
+
+.seo-market h2 {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.seo-market p {
+  margin: 0;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.seo-market a {
+  color: var(--blue);
+  font-weight: 600;
+}
+
 .footer {
   border-top: 1px solid var(--line);
   background: #fff;

@@ -306,6 +306,19 @@ export default function Home() {
           </Link>
         </div>
       </section>
-    </div>
-  );
-}
+
+      <section className="section seo-market" id="marketplace-india">
+        <h2>Buy &amp; Sell Websites, Apps &amp; Online Businesses in India</h2>
+        <p>
+          NexMarket is a digital business marketplace India where buyers and sellers can connect to explore{' '}
+          <Link to="/buy-website">buy and sell websites in India</Link>,{' '}
+          <Link to="/buy-android-app">buy and sell Android apps in India</Link>, and discover{' '}
+          <Link to="/online-businesses">online businesses for sale in India</Link>. Browse{' '}
+          <Link to="/websites">websites</Link> and <Link to="/apps">apps for sale</Link>, including profitable
+          websites, blogs, ecommerce businesses, SaaS projects, and ready-made Android applications. Whether you
+          want to buy profitable website, <Link to="/sell-website">sell website online</Link>, or{' '}
+          <Link to="/sell-android-app">sell Android app</Link>, NexMarket provides an easy-to-use website
+          marketplace India and online business marketplace India where you can discover digital businesses and
+          connect with potential buyers or sellers.
+        </p>
+      </section>
