@@ -657,6 +657,85 @@ export default function Browse({ type }) {
           )}
         </section>
       </div>
+
+      {isApp ? (
+        <section className="browse-seo" id="android-apps-for-sale-india">
+          <h2>Android Apps for Sale in India</h2>
+          <p>
+            Explore Android apps available for sale on NexMarket. Browse ready-made applications across
+            different categories and price ranges, from education and finance tools to health, productivity,
+            games and utility apps. Each listing is meant to help a buyer understand what they are looking at
+            before they spend time talking to the seller.
+          </p>
+          <p>
+            When you open an app listing you can usually see the category, asking price in INR, download
+            range, ratings, monthly revenue where the seller has shared it, and other notes such as last
+            update or app size. That mix of details makes it easier to compare two or three apps side by
+            side instead of guessing from a title alone. If an app looks like a fit, you can send a message
+            or an offer from the listing page and continue the conversation inside your dashboard.
+          </p>
+          <p>
+            Buyers looking for a ready-made Android application often want something they can take over,
+            maintain and grow, rather than starting from a blank project. Some listings may already have
+            users on the Play Store. Others may be earlier-stage apps with a working product and room to
+            improve. Use the filters on this page to narrow by category, price, downloads or revenue, then
+            read the listing carefully and ask the seller for Play Console screenshots or extra proof
+            before you pay.
+          </p>
+          <p>
+            If you own an Android application and want to sell it, you can also submit your app through
+            NexMarket. Create a free account, add the app details, upload screenshots and send the listing
+            for admin review. After approval it appears on this Android apps page so interested buyers in
+            India can find it. Listing is free for the first few projects; extra listing slots can be added
+            later if you need them.
+          </p>
+          <p>
+            NexMarket is a marketplace, not an escrow service and not the owner of the apps you see here.
+            Ownership stays with the seller until you both agree a price and complete the transfer. Take
+            your time, compare listings, and only move forward when the details on the page and the
+            seller&apos;s answers give you a clear picture of the app.
+          </p>
+        </section>
+      ) : (
+        <section className="browse-seo" id="websites-for-sale-india">
+          <h2>Websites for Sale in India</h2>
+          <p>
+            Browse websites and online businesses available for sale on NexMarket. This page brings together
+            blogs, ecommerce stores, SaaS projects, content websites and other digital businesses with
+            different prices and revenue levels, so you can look through real listings instead of starting a
+            project from scratch.
+          </p>
+          <p>
+            Find blogs, ecommerce stores, SaaS projects, content websites and other digital businesses with
+            different prices and revenue levels. A listing typically includes the asking price in INR,
+            category, monthly revenue, traffic, platform and a short description. Some sellers also share
+            domain age, monetization method and screenshots. You can use those fields to compare two sites
+            in the same niche, or to filter the list down to a budget and category that match what you want.
+          </p>
+          <p>
+            Whether you&apos;re looking for a ready-made website to grow or want to buy an existing online
+            business, you can compare available listings, review their details and connect with the seller.
+            Open a listing to read the full description, check the live URL where it is provided, and send
+            an offer or a message if you want to know more. The seller receives it in their dashboard and
+            can reply there. That keeps the first conversation on the platform instead of jumping to a
+            random chat app before you have basic facts.
+          </p>
+          <p>
+            Buying a website is still a business decision. Traffic, revenue and history should be checked
+            with the seller before any payment. Ask for analytics access, payment proofs or other documents
+            that match what is written on the listing. NexMarket reviews listings before they go live, but
+            it does not take ownership of the site and it does not complete the transfer for you. You keep
+            talking with the seller until you both agree on price and handover steps.
+          </p>
+          <p>
+            If you already run a website and want to sell it, you can list it from the sell page after
+            creating an account. Add the name, category, asking price, revenue, traffic and screenshots, then
+            wait for admin approval. Once approved, the site appears here for buyers who are browsing
+            websites for sale in India. Free accounts can create a small number of listings; extra slots
+            are available if you need to list more projects later.
+          </p>
+        </section>
+      )}
     </PageLayout>
   );
 }

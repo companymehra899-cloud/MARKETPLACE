@@ -3099,6 +3099,30 @@ main {
   gap: 16px;
 }
 
+.browse-seo {
+  margin: 48px 0 8px;
+  max-width: 860px;
+  text-align: left;
+}
+
+.browse-seo h2 {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  color: #0f172a;
+}
+
+.browse-seo p {
+  margin: 0 0 16px;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.browse-seo p:last-child {
+  margin-bottom: 0;
+}
+
 .listing-card .ask {
   color: var(--green);
   font-size: 22px;
