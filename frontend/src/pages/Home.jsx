@@ -322,3 +322,6 @@ export default function Home() {
           connect with potential buyers or sellers.
         </p>
       </section>
+    </div>
+  );
+}
