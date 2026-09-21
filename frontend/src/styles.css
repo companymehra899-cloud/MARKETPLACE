@@ -3656,6 +3656,48 @@ main {
   margin: 6px 0 0;
 }
 
+.guide-page .lede {
+  max-width: 720px;
+}
+
+.guide-page .btn {
+  margin: 8px 0 28px;
+}
+
+.guide-block {
+  margin: 0 0 28px;
+  max-width: 760px;
+}
+
+.guide-block h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.guide-block p {
+  color: #334155;
+  line-height: 1.7;
+}
+
+.guide-faq {
+  margin-top: 16px;
+}
+
+.guide-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  padding-top: 8px;
+  margin-bottom: 24px;
+}
+
+.guide-links a {
+  color: var(--blue);
+  font-weight: 600;
+  font-size: 14px;
+}
+
 @media (max-width: 1100px) {
 }
 

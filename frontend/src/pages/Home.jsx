@@ -43,12 +43,12 @@ export default function Home() {
       <section className="hero">
         <div className="hero-copy">
           <h1>
-            Buy &amp; Sell
+            Buy and Sell Websites
             <br />
-            Websites and Android Apps
+            and Android Apps in India
           </h1>
           <p className="lede">
-            The trusted marketplace for digital projects. Find profitable websites and Android apps or list your own and reach serious buyers.
+            India&apos;s marketplace for websites for sale and Android apps for sale. Browse profitable online businesses or list yours and reach serious buyers in INR.
           </p>
           <form className="hero-search" onSubmit={search}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94a3b8" strokeWidth="2">
@@ -68,8 +68,8 @@ export default function Home() {
                 <IconLaptop />
               </span>
               <span>
-                <strong>Browse Websites</strong>
-                <em>Explore websites for sale →</em>
+                <strong>Websites for Sale</strong>
+                <em>Buy a website in India →</em>
               </span>
             </Link>
             <Link to="/apps" className="cat-chip app">
@@ -77,8 +77,8 @@ export default function Home() {
                 <IconAndroid />
               </span>
               <span>
-                <strong>Browse Android Apps</strong>
-                <em>Explore Android apps for sale →</em>
+                <strong>Android Apps for Sale</strong>
+                <em>Buy an Android app in India →</em>
               </span>
             </Link>
           </div>
@@ -169,8 +169,8 @@ export default function Home() {
       <section className="section featured-sec">
         <div className="section-head">
           <div>
-            <h2>Featured Listings</h2>
-            <p>Handpicked websites and Android apps with great potential.</p>
+            <h2>Featured Websites and Apps for Sale</h2>
+            <p>Handpicked websites for sale and Android apps for sale with traffic, revenue and downloads.</p>
           </div>
           <div className="head-actions">
             <Link to="/websites">View All Listings →</Link>
@@ -298,8 +298,8 @@ export default function Home() {
       <section className="cta-wrap">
         <div className="cta">
           <div>
-            <h2>Ready to Sell Your Website or Android App?</h2>
-            <p>Reach thousands of potential buyers and get the best value for your project.</p>
+            <h2>Ready to Sell Your Website or Android App in India?</h2>
+            <p>List free, reach buyers looking for websites and apps for sale, and deal in INR.</p>
           </div>
           <Link to="/sell" className="btn btn-primary cta-btn">
             List Your Project →

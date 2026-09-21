@@ -6,8 +6,8 @@ import PageLayout from '../components/PageLayout.jsx';
 
 const COPY = {
   how: {
-    title: 'How It Works',
-    sub: 'A simple and secure process to buy or sell digital projects.',
+    title: 'How to Buy and Sell a Website or App',
+    sub: 'A simple process to buy a website, sell a website, or buy and sell an Android app in India.',
     body: [
       'Create a free NexMarket account in minutes.',
       'Sellers list a website or Android app with price, revenue, and traffic or downloads. Admin reviews every listing before it goes live.',

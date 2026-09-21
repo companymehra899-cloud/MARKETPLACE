@@ -30,10 +30,10 @@ export default function Navbar() {
             Home
           </NavLink>
           <NavLink to="/websites" onClick={() => setOpen(false)}>
-            Websites
+            Websites for Sale
           </NavLink>
           <NavLink to="/apps" onClick={() => setOpen(false)}>
-            Android Apps
+            Apps for Sale
           </NavLink>
           <NavLink to="/sell" onClick={() => setOpen(false)}>
             Sell Your Project

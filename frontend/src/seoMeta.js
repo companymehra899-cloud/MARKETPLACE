@@ -2,10 +2,10 @@ import { inr } from './format.js';
 
 export const SITE_NAME = 'NexMarket';
 
-export const DEFAULT_TITLE = 'NexMarket — Buy. Sell. Grow.';
+export const DEFAULT_TITLE = 'Buy and Sell Websites and Android Apps in India | NexMarket';
 
 export const DEFAULT_DESCRIPTION =
-  "NexMarket is India's marketplace to buy and sell websites and Android apps. Browse verified listings with traffic, revenue and download data, or list your project and reach serious buyers.";
+  'Buy and sell websites and Android apps in India on NexMarket. Browse websites for sale, Android apps for sale and online businesses with traffic, revenue and downloads in INR.';
 
 export const DEFAULT_IMAGE = '/og-image.png';
 
@@ -43,9 +43,9 @@ export function breadcrumbLd(origin, items) {
 
 export const ROUTE_META = {
   '/': {
-    title: 'Buy & Sell Websites and Android Apps in India',
+    title: 'Buy and Sell Websites and Android Apps in India',
     description:
-      "NexMarket is India's marketplace to buy and sell websites and Android apps. Browse verified listings with traffic, revenue and download data, or list your project and reach serious buyers.",
+      'Buy and sell websites and Android apps in India. NexMarket lists profitable websites for sale and Android apps for sale with traffic, revenue, downloads and INR prices.',
     jsonLd: (origin) => [
       {
         '@context': 'https://schema.org',
@@ -55,7 +55,7 @@ export const ROUTE_META = {
         logo: `${origin}/logo-512.png`,
         email: 'support@nexmarket.in',
         areaServed: 'IN',
-        description: "India's marketplace to buy and sell websites and Android apps.",
+        description: 'Marketplace in India to buy and sell websites, Android apps and online businesses.',
       },
       {
         '@context': 'https://schema.org',
@@ -71,9 +71,9 @@ export const ROUTE_META = {
     ],
   },
   '/websites': {
-    title: 'Websites for Sale',
+    title: 'Websites for Sale in India',
     description:
-      'Browse websites for sale on NexMarket. Filter by category, price, monthly revenue and traffic, then connect with verified sellers across India.',
+      'Websites for sale in India. Buy a profitable website with traffic, monthly revenue and asking price in INR. Filter blogs, ecommerce, SaaS and more on NexMarket.',
     jsonLd: (origin) =>
       breadcrumbLd(origin, [
         { name: 'Home', path: '/' },
@@ -81,9 +81,9 @@ export const ROUTE_META = {
       ]),
   },
   '/apps': {
-    title: 'Android Apps for Sale',
+    title: 'Android Apps for Sale in India',
     description:
-      'Browse Android apps for sale on NexMarket. Find apps by category, downloads, revenue and price, and buy your next mobile project with confidence.',
+      'Android apps for sale in India. Buy a Play Store app with downloads, ratings and monthly revenue in INR. Browse education, finance, games and more on NexMarket.',
     jsonLd: (origin) =>
       breadcrumbLd(origin, [
         { name: 'Home', path: '/' },
@@ -91,9 +91,9 @@ export const ROUTE_META = {
       ]),
   },
   '/how-it-works': {
-    title: 'How It Works',
+    title: 'How to Buy and Sell a Website or App',
     description:
-      'Learn how NexMarket works: create a free account, list or discover websites and Android apps, and complete a safe, admin-verified transfer.',
+      'How NexMarket works: create a free account, list or buy a website or Android app in India, send an offer in INR, and complete a safe ownership transfer.',
     jsonLd: (origin) =>
       breadcrumbLd(origin, [
         { name: 'Home', path: '/' },
@@ -124,6 +124,56 @@ export const ROUTE_META = {
     title: 'Contact Us',
     description:
       'Contact NexMarket support for help with buying, selling, listings, payments and partnerships.',
+  },
+  '/buy-website': {
+    title: 'Buy a Website in India',
+    description:
+      'Buy a website in India on NexMarket. Browse websites for sale with traffic, monthly revenue and INR asking prices, then send an offer to the seller.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Buy a Website', path: '/buy-website' },
+      ]),
+  },
+  '/sell-website': {
+    title: 'Sell Your Website in India',
+    description:
+      'Sell your website in India. List for free on NexMarket, reach buyers looking for traffic and revenue, and negotiate the sale in INR.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Sell Your Website', path: '/sell-website' },
+      ]),
+  },
+  '/buy-android-app': {
+    title: 'Buy an Android App in India',
+    description:
+      'Buy an Android app in India. Find Play Store apps for sale with downloads, ratings and monthly revenue, then make an offer in INR.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Buy an Android App', path: '/buy-android-app' },
+      ]),
+  },
+  '/sell-android-app': {
+    title: 'Sell Your Android App in India',
+    description:
+      'Sell your Android app in India. List your Play Store app with downloads and revenue on NexMarket and reach buyers paying in INR.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Sell Your Android App', path: '/sell-android-app' },
+      ]),
+  },
+  '/online-businesses': {
+    title: 'Online Businesses for Sale in India',
+    description:
+      'Online businesses for sale in India. Buy and sell websites and Android apps on NexMarket — an INR marketplace for digital projects.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Online Businesses for Sale', path: '/online-businesses' },
+      ]),
   },
 };
 
@@ -184,7 +234,7 @@ export function listingMeta(listing, origin) {
   };
 
   return {
-    title: `${listing.name} — ${inr(listing.price)}`,
+    title: `${listing.name} ${isApp ? 'Android App' : 'Website'} for Sale — ${inr(listing.price)}`,
     description,
     image,
     type: 'product',

@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import MyListings from './pages/MyListings.jsx';
 import Admin from './pages/Admin.jsx';
 import Static from './pages/Static.jsx';
+import Guides from './pages/Guides.jsx';
 import {
   OffersPage,
   MessagesPage,
@@ -206,6 +207,11 @@ export default function App() {
           <Route path="/terms" element={<Static kind="terms" />} />
           <Route path="/privacy" element={<Static kind="privacy" />} />
           <Route path="/contact" element={<Static kind="contact" />} />
+          <Route path="/buy-website" element={<Guides kind="buy-website" />} />
+          <Route path="/sell-website" element={<Guides kind="sell-website" />} />
+          <Route path="/buy-android-app" element={<Guides kind="buy-android-app" />} />
+          <Route path="/sell-android-app" element={<Guides kind="sell-android-app" />} />
+          <Route path="/online-businesses" element={<Guides kind="online-businesses" />} />
         </Routes>
       </main>
       {!hideChrome && <Footer />}

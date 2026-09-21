@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="foot-brand">
           <Logo />
           <p>
-            A modern marketplace for buying and selling websites and Android apps. Helping creators, builders and entrepreneurs grow together.
+            Buy and sell websites and Android apps in India. NexMarket lists online businesses with traffic, revenue and downloads, priced in INR.
           </p>
           <div className="socials">
             <a href="#facebook" aria-label="Facebook">f</a>
@@ -22,13 +22,14 @@ export default function Footer() {
           </div>
         </div>
         <div>
-          <h4>Quick Links</h4>
-          <Link to="/">Home</Link>
-          <Link to="/websites">Websites</Link>
-          <Link to="/apps">Android Apps</Link>
-          <Link to="/sell">Sell Your Project</Link>
-          <Link to="/how-it-works">How It Works</Link>
-          <Link to="/contact">Contact Us</Link>
+          <h4>Marketplace</h4>
+          <Link to="/websites">Websites for Sale</Link>
+          <Link to="/apps">Android Apps for Sale</Link>
+          <Link to="/buy-website">Buy a Website</Link>
+          <Link to="/sell-website">Sell Your Website</Link>
+          <Link to="/buy-android-app">Buy an Android App</Link>
+          <Link to="/sell-android-app">Sell Your Android App</Link>
+          <Link to="/online-businesses">Online Businesses</Link>
         </div>
         <div>
           <h4>Support</h4>
@@ -58,7 +59,7 @@ export default function Footer() {
             <button type="submit">Subscribe</button>
           </form>
           {done && <small>Subscribed.</small>}
-          <p className="copy">© 2024 NexMarket. All rights reserved.</p>
+          <p className="copy">© {new Date().getFullYear()} NexMarket. All rights reserved.</p>
         </div>
       </div>
     </footer>

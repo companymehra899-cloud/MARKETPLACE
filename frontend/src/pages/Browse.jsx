@@ -137,7 +137,7 @@ export default function Browse({ type }) {
 
   const isApp = type === 'app';
   const cats = isApp ? APP_CATS : WEB_CATS;
-  const title = isApp ? 'Android Apps for Sale' : 'Websites for Sale';
+  const title = isApp ? 'Android Apps for Sale in India' : 'Websites for Sale in India';
   const crumb = isApp ? 'Android Apps' : 'Websites';
 
   useEffect(() => {
@@ -303,8 +303,8 @@ export default function Browse({ type }) {
           <h1>{title}</h1>
           <p>
             {isApp
-              ? 'Discover high-quality Android apps with real users, revenue and growth potential.'
-              : 'Discover high-quality websites with real traffic, revenue and growth potential.'}
+              ? 'Buy an Android app in India. Browse Play Store apps for sale with downloads, ratings, monthly revenue and asking price in INR.'
+              : 'Buy a website in India. Browse websites for sale with real traffic, monthly revenue, domain age and asking price in INR.'}
           </p>
         </div>
         <div className={`browse-promo ${isApp ? 'app' : ''}`}>
