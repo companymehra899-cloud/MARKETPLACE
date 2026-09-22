@@ -43,8 +43,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const DEFAULT_CORS_ORIGINS = [
-  'https://nexmarket.online',
-  'https://www.nexmarket.online',
   'https://websitesell.online',
   'https://www.websitesell.online',
 ];
