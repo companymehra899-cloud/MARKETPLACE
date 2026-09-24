@@ -2,8 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { inr } from '../format.js';
 import Cover from './Cover.jsx';
+import MarketCard from './MarketCard.jsx';
+import { isMarketType } from '../catalog.js';
 
 export default function ListingCard({ listing, filled, layout = 'grid' }) {
+  if (isMarketType(listing.type)) {
+    return <MarketCard listing={listing} layout={layout} />;
+  }
   const isApp = listing.type === 'app';
   const traffic = String(listing.traffic || '');
   const visitors = traffic.includes('/') ? traffic : traffic ? `${traffic}/mo` : '—';

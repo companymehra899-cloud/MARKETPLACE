@@ -7,6 +7,7 @@ import Cover from '../components/Cover.jsx';
 import Seo from '../components/Seo.jsx';
 import { listingMeta } from '../seoMeta.js';
 import { getPreload } from '../preload.js';
+import { MARKET_TYPES, marketCardStats } from '../catalog.js';
 
 const WEB_GALLERIES = {
   travel: [
@@ -228,6 +229,8 @@ export default function ListingDetail() {
   if (!listing) return <p className="page-loading">Loading listing...</p>;
 
   const isApp = listing.type === 'app';
+  const marketCfg = MARKET_TYPES[listing.type] || null;
+  const isMarket = Boolean(marketCfg);
   const photos = listingPhotos(listing);
   const currentShot = photos[shot] || photos[0];
   const chips = (listing.tags || listing.keyFeatures || []).slice(0, 4);
@@ -249,9 +252,15 @@ export default function ListingDetail() {
       <div className="crumbs">
         <Link to="/">Home</Link>
         <span>›</span>
-        <Link to={isApp ? '/apps' : '/websites'}>{isApp ? 'Android Apps' : 'Websites'}</Link>
+        <Link to={isMarket ? marketCfg.route : isApp ? '/apps' : '/websites'}>
+          {isMarket ? marketCfg.label : isApp ? 'Android Apps' : 'Websites'}
+        </Link>
         <span>›</span>
-        <Link to={isApp ? `/apps?category=${encodeURIComponent(listing.category)}` : `/websites?category=${encodeURIComponent(listing.category)}`}>
+        <Link
+          to={`${isMarket ? marketCfg.route : isApp ? '/apps' : '/websites'}?category=${encodeURIComponent(
+            listing.category
+          )}`}
+        >
           {crumbCat}
         </Link>
         <span>›</span>
@@ -295,7 +304,9 @@ export default function ListingDetail() {
         </div>
 
         <div className="ld-info">
-          <span className={`type-pill ${isApp ? 'app' : ''}`}>{typeLabel(listing.type)}</span>
+          <span className={`type-pill ${isApp ? 'app' : isMarket ? marketCfg.accent : ''}`}>
+            {isMarket ? marketCfg.singular : typeLabel(listing.type)}
+          </span>
           <h1>{listing.name}</h1>
           <p className="ld-sub">{listing.subtitle || listing.description}</p>
           <div className="ld-price-row">
@@ -303,48 +314,62 @@ export default function ListingDetail() {
             <em>Negotiable</em>
           </div>
           <div className="ld-metrics">
-            <div className="ld-metric">
-              <span className="ld-metric-ico">
-                <MetricIcon name="chart" />
-              </span>
-              <small>Monthly Revenue</small>
-              <strong>{listing.monthlyRevenue ? inr(listing.monthlyRevenue) : '—'}</strong>
-            </div>
-            <div className="ld-metric">
-              <span className="ld-metric-ico">
-                <MetricIcon name="users" />
-              </span>
-              <small>{isApp ? 'Downloads' : 'Monthly Visitors'}</small>
-              <strong>{isApp ? listing.downloads || '—' : listing.traffic || '—'}</strong>
-            </div>
-            <div className="ld-metric">
-              <span className="ld-metric-ico">
-                <MetricIcon name="cal" />
-              </span>
-              <small>{isApp ? 'App Size' : 'Age'}</small>
-              <strong>{isApp ? listing.appSize || '—' : listing.domainAge || '—'}</strong>
-            </div>
-            <div className="ld-metric">
-              <span className="ld-metric-ico">
-                <MetricIcon name="plat" />
-              </span>
-              <small>Platform</small>
-              <strong>{listing.platform || listing.techStack?.[0] || (isApp ? 'Android' : 'Web')}</strong>
-            </div>
-            <div className="ld-metric">
-              <span className="ld-metric-ico">
-                <MetricIcon name="folder" />
-              </span>
-              <small>Category</small>
-              <strong>{listing.category}</strong>
-            </div>
-            <div className="ld-metric">
-              <span className="ld-metric-ico">
-                <MetricIcon name="shield" />
-              </span>
-              <small>Monetization</small>
-              <strong>{listing.monetization || '—'}</strong>
-            </div>
+            {isMarket ? (
+              marketCardStats(listing).map((stat) => (
+                <div className="ld-metric" key={stat.label}>
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="folder" />
+                  </span>
+                  <small>{stat.label}</small>
+                  <strong>{stat.value}</strong>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="ld-metric">
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="chart" />
+                  </span>
+                  <small>Monthly Revenue</small>
+                  <strong>{listing.monthlyRevenue ? inr(listing.monthlyRevenue) : '—'}</strong>
+                </div>
+                <div className="ld-metric">
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="users" />
+                  </span>
+                  <small>{isApp ? 'Downloads' : 'Monthly Visitors'}</small>
+                  <strong>{isApp ? listing.downloads || '—' : listing.traffic || '—'}</strong>
+                </div>
+                <div className="ld-metric">
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="cal" />
+                  </span>
+                  <small>{isApp ? 'App Size' : 'Age'}</small>
+                  <strong>{isApp ? listing.appSize || '—' : listing.domainAge || '—'}</strong>
+                </div>
+                <div className="ld-metric">
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="plat" />
+                  </span>
+                  <small>Platform</small>
+                  <strong>{listing.platform || listing.techStack?.[0] || (isApp ? 'Android' : 'Web')}</strong>
+                </div>
+                <div className="ld-metric">
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="folder" />
+                  </span>
+                  <small>Category</small>
+                  <strong>{listing.category}</strong>
+                </div>
+                <div className="ld-metric">
+                  <span className="ld-metric-ico">
+                    <MetricIcon name="shield" />
+                  </span>
+                  <small>Monetization</small>
+                  <strong>{listing.monetization || '—'}</strong>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -388,7 +413,7 @@ export default function ListingDetail() {
           ['overview', 'Overview'],
           ['preview', 'Demo/Live Preview'],
           ['technology', 'Tech Details'],
-          ...(!isApp ? [['website', 'Website Info']] : []),
+          ...(!isApp && !isMarket ? [['website', 'Website Info']] : []),
         ].map(([key, label]) => (
           <button key={key} className={tab === key ? 'on' : ''} onClick={() => setTab(key)}>
             {label}
@@ -398,10 +423,15 @@ export default function ListingDetail() {
 
       {tab === 'overview' && (
         <section className="ld-about">
-          <h2>About This {isApp ? 'App' : 'Website'}</h2>
+          <h2>About This {isMarket ? marketCfg.singular : isApp ? 'App' : 'Website'}</h2>
           <p>{listing.description}</p>
           <div className="ld-chips">
-            {(chips.length ? chips : [crumbCat, isApp ? 'App' : 'Blog', 'Responsive', 'Easy to Customize']).map((c, i) => (
+            {(chips.length
+              ? chips
+              : isMarket
+              ? [crumbCat, marketCfg.label, 'Verified', 'Direct Seller']
+              : [crumbCat, isApp ? 'App' : 'Blog', 'Responsive', 'Easy to Customize']
+            ).map((c, i) => (
               <span key={c} className={`chip-${i % 4}`}>{c}</span>
             ))}
           </div>
@@ -423,7 +453,7 @@ export default function ListingDetail() {
         </section>
       )}
 
-      {tab === 'website' && !isApp && (
+      {tab === 'website' && !isApp && !isMarket && (
         <section className="ld-about">
           <h2>Website Info</h2>
           <dl className="ld-meta site-info">
@@ -459,9 +489,14 @@ export default function ListingDetail() {
         <section className="ld-about">
           <h2>Tech Details</h2>
           <div className="tech">
-            {(listing.techStack || [listing.platform || 'Web']).map((t) => (
-              <span key={t}>{t}</span>
-            ))}
+            {(listing.techStack && listing.techStack.length
+              ? listing.techStack
+              : [listing.platform || listing.category]
+            )
+              .filter(Boolean)
+              .map((t) => (
+                <span key={t}>{t}</span>
+              ))}
           </div>
           {listing.included && <p>Included: {listing.included}</p>}
           {listing.support && <p>Support: {listing.support}</p>}
@@ -472,7 +507,7 @@ export default function ListingDetail() {
         <section className="similar-strip">
           <div className="similar-head">
             <h3>Similar Listings</h3>
-            <Link to={isApp ? '/apps' : '/websites'}>View All →</Link>
+            <Link to={isMarket ? marketCfg.route : isApp ? '/apps' : '/websites'}>View All →</Link>
           </div>
           <div className="similar-grid">
             {similar.map((l) => (

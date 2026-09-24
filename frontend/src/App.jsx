@@ -4,6 +4,7 @@ import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
 import Browse from './pages/Browse.jsx';
+import MarketBrowse from './pages/MarketBrowse.jsx';
 import ListingDetail from './pages/ListingDetail.jsx';
 import Sell from './pages/Sell.jsx';
 import Auth from './pages/Auth.jsx';
@@ -62,6 +63,10 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/websites" element={<Browse type="website" />} />
           <Route path="/apps" element={<Browse type="app" />} />
+          <Route path="/vehicles" element={<MarketBrowse type="vehicle" />} />
+          <Route path="/mobiles" element={<MarketBrowse type="mobile" />} />
+          <Route path="/services" element={<MarketBrowse type="service" />} />
+          <Route path="/tours" element={<MarketBrowse type="tour" />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route
             path="/sell"

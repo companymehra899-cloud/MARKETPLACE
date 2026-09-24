@@ -3762,3 +3762,75 @@ main {
     margin-bottom: 16px;
   }
 }
+
+/* Market categories: vehicles, mobiles, services, tours */
+.market-card.is-vehicle .thumb {
+  background: linear-gradient(180deg, #ffedd5, #fffaf5);
+}
+.market-card.is-mobile .thumb {
+  background: linear-gradient(180deg, #ede9fe, #faf9ff);
+}
+.market-card.is-service .thumb {
+  background: linear-gradient(180deg, #cffafe, #f5feff);
+}
+.market-card.is-tour .thumb {
+  background: linear-gradient(180deg, #fce7f3, #fff7fb);
+}
+.market-card.is-vehicle .badge {
+  color: #ea580c;
+}
+.market-card.is-mobile .badge {
+  color: #7c3aed;
+}
+.market-card.is-service .badge {
+  color: #0891b2;
+}
+.market-card.is-tour .badge {
+  color: #db2777;
+}
+.market-card .metrics {
+  grid-template-columns: 1fr 1fr;
+}
+
+.browse-promo.vehicle {
+  background: #fff3e6;
+}
+.browse-promo.mobile {
+  background: #f3efff;
+}
+.browse-promo.service {
+  background: #e8fbff;
+}
+.browse-promo.tour {
+  background: #fdeef5;
+}
+
+.cat-chip.vehicle {
+  background: #fff3e6;
+}
+.cat-chip.mobile {
+  background: #f3efff;
+}
+.cat-chip.service {
+  background: #e8fbff;
+}
+.cat-chip.tour {
+  background: #fdeef5;
+}
+
+.type-pill.vehicle {
+  background: #ffedd5;
+  color: #c2410c;
+}
+.type-pill.mobile {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.type-pill.service {
+  background: #cffafe;
+  color: #0e7490;
+}
+.type-pill.tour {
+  background: #fce7f3;
+  color: #be185d;
+}

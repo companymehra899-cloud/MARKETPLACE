@@ -9,6 +9,10 @@ import {
   IconChart,
   IconLaptop,
   IconAndroid,
+  IconVehicle,
+  IconMobile,
+  IconService,
+  IconTour,
   IconPerson,
   IconChat,
   IconHandshake,
@@ -27,9 +31,10 @@ export default function Home() {
   }, []);
 
   const PAGE = 4;
-  const featured = listings.filter((l) => l.featured);
-  const rest = listings.filter((l) => !l.featured);
-  const pool = featured.length ? [...featured, ...rest] : listings;
+  const digital = listings.filter((l) => l.type === 'website' || l.type === 'app');
+  const featured = digital.filter((l) => l.featured);
+  const rest = digital.filter((l) => !l.featured);
+  const pool = featured.length ? [...featured, ...rest] : digital;
   const maxStart = Math.max(0, pool.length - PAGE);
 
   function search(e) {
@@ -79,6 +84,42 @@ export default function Home() {
               <span>
                 <strong>Android Apps for Sale</strong>
                 <em>Buy an Android app in India →</em>
+              </span>
+            </Link>
+            <Link to="/vehicles" className="cat-chip vehicle">
+              <span className="cat-ico">
+                <IconVehicle />
+              </span>
+              <span>
+                <strong>Vehicles for Sale</strong>
+                <em>Cars, bikes &amp; scooters →</em>
+              </span>
+            </Link>
+            <Link to="/mobiles" className="cat-chip mobile">
+              <span className="cat-ico">
+                <IconMobile />
+              </span>
+              <span>
+                <strong>Second Hand Mobiles</strong>
+                <em>Used phones near you →</em>
+              </span>
+            </Link>
+            <Link to="/services" className="cat-chip service">
+              <span className="cat-ico">
+                <IconService />
+              </span>
+              <span>
+                <strong>Local Services</strong>
+                <em>Home, repair &amp; more →</em>
+              </span>
+            </Link>
+            <Link to="/tours" className="cat-chip tour">
+              <span className="cat-ico">
+                <IconTour />
+              </span>
+              <span>
+                <strong>Tour &amp; Travels</strong>
+                <em>Holiday packages →</em>
               </span>
             </Link>
           </div>

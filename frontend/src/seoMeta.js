@@ -1,4 +1,5 @@
 import { inr } from './format.js';
+import { MARKET_TYPES } from './catalog.js';
 
 export const SITE_NAME = 'NexMarket';
 
@@ -88,6 +89,46 @@ export const ROUTE_META = {
       breadcrumbLd(origin, [
         { name: 'Home', path: '/' },
         { name: 'Android Apps for Sale', path: '/apps' },
+      ]),
+  },
+  '/vehicles': {
+    title: 'Vehicles for Sale in India',
+    description:
+      'Used cars, bikes and scooters for sale in India. Compare brand, year, kilometres driven, fuel type and price in INR on NexMarket.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Vehicles for Sale', path: '/vehicles' },
+      ]),
+  },
+  '/mobiles': {
+    title: 'Second Hand Mobiles for Sale in India',
+    description:
+      'Second hand mobiles for sale in India. Buy used smartphones with brand, storage, condition, warranty and price in INR on NexMarket.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Mobiles for Sale', path: '/mobiles' },
+      ]),
+  },
+  '/services': {
+    title: 'Local Services in India',
+    description:
+      'Find local services in India. Browse home services, repairs, education, IT and more with location and starting price in INR on NexMarket.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Services', path: '/services' },
+      ]),
+  },
+  '/tours': {
+    title: 'Tour and Travel Packages in India',
+    description:
+      'Tour and travel packages in India. Explore domestic and international trips, adventure and pilgrimage tours with duration and price in INR on NexMarket.',
+    jsonLd: (origin) =>
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Tour & Travels', path: '/tours' },
       ]),
   },
   '/how-it-works': {
@@ -184,6 +225,10 @@ export function listingImage(listing) {
 
 export function listingMeta(listing, origin) {
   const isApp = listing.type === 'app';
+  const marketCfg = MARKET_TYPES[listing.type] || null;
+  const groupLabel = marketCfg ? marketCfg.label : isApp ? 'Android Apps' : 'Websites';
+  const typeName = marketCfg ? marketCfg.singular : isApp ? 'Android App' : 'Website';
+  const groupPath = marketCfg ? marketCfg.route : isApp ? '/apps' : '/websites';
   const category = listing.category?.split('&')[0]?.trim() || listing.category || '';
   const path = `/listing/${listing.id}`;
   const url = `${origin}${path}`;
@@ -220,21 +265,21 @@ export function listingMeta(listing, origin) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: isApp ? 'Android Apps' : 'Websites',
-        item: `${origin}${isApp ? '/apps' : '/websites'}`,
+        name: groupLabel,
+        item: `${origin}${groupPath}`,
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: category,
-        item: `${origin}${isApp ? '/apps' : '/websites'}?category=${encodeURIComponent(listing.category || '')}`,
+        item: `${origin}${groupPath}?category=${encodeURIComponent(listing.category || '')}`,
       },
       { '@type': 'ListItem', position: 4, name: listing.name, item: url },
     ],
   };
 
   return {
-    title: `${listing.name} ${isApp ? 'Android App' : 'Website'} for Sale — ${inr(listing.price)}`,
+    title: `${listing.name} ${typeName} for Sale — ${inr(listing.price)}`,
     description,
     image,
     type: 'product',

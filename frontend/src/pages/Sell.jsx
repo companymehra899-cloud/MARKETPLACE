@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import PageLayout from '../components/PageLayout.jsx';
 import ListingPackModal from '../components/ListingPackModal.jsx';
+import { MARKET_TYPES, MARKET_TYPE_LIST } from '../catalog.js';
+import { IconLaptop, IconAndroid, IconVehicle, IconMobile, IconService, IconTour } from '../components/Icons.jsx';
 
 const MAX_SHOTS = 2;
 const MAX_EDGE = 900;
@@ -45,6 +47,22 @@ const empty = {
   monetization: '',
   appSize: '',
   domainAge: '',
+  brand: '',
+  year: '',
+  km: '',
+  fuel: '',
+  transmission: '',
+  owners: '',
+  storage: '',
+  ram: '',
+  condition: '',
+  warranty: '',
+  location: '',
+  serviceMode: '',
+  experience: '',
+  destination: '',
+  durationDays: '',
+  groupSize: '',
 };
 
 const WEB_CATS = [
@@ -81,6 +99,27 @@ const APP_CATS = [
 
 const APP_PLATFORMS = ['Android', 'Kotlin', 'Java', 'Flutter', 'React Native', 'Custom'];
 const WEB_PLATFORMS = ['WordPress', 'Shopify', 'Webflow', 'Custom'];
+
+const TYPE_OPTIONS = [
+  { type: 'website', label: 'Website' },
+  { type: 'app', label: 'Android App' },
+  ...MARKET_TYPE_LIST.map((cfg) => ({ type: cfg.type, label: cfg.singular })),
+];
+
+const TYPE_ICONS = {
+  website: <IconLaptop />,
+  app: <IconAndroid />,
+  vehicle: <IconVehicle />,
+  mobile: <IconMobile />,
+  service: <IconService />,
+  tour: <IconTour />,
+};
+
+function chunk(items, size) {
+  const out = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
 
 export default function Sell() {
   const { id } = useParams();
@@ -130,13 +169,14 @@ export default function Sell() {
     api(`/api/listings/${id}`)
       .then((d) => {
         const l = d.listing;
-        const cats = l.type === 'app' ? APP_CATS : WEB_CATS;
+        const marketCfg = MARKET_TYPES[l.type];
+        const cats = marketCfg ? marketCfg.categories : l.type === 'app' ? APP_CATS : WEB_CATS;
         const known = cats.includes(l.category);
         setForm({
           type: l.type,
           name: l.name || '',
           category: l.category || empty.category,
-          platform: l.platform || (l.type === 'app' ? 'Android' : 'WordPress'),
+          platform: l.platform || (l.type === 'app' ? 'Android' : l.type === 'website' ? 'WordPress' : ''),
           price: l.price ?? '',
           monthlyRevenue: l.monthlyRevenue ?? '',
           traffic: l.traffic || '',
@@ -147,11 +187,27 @@ export default function Sell() {
           monetization: String(l.monetization || ''),
           appSize: l.appSize && l.appSize !== '—' ? l.appSize : '',
           domainAge: l.domainAge && l.domainAge !== '—' ? l.domainAge : '',
+          brand: l.brand || '',
+          year: l.year ?? '',
+          km: l.km ?? '',
+          fuel: l.fuel || '',
+          transmission: l.transmission || '',
+          owners: l.owners || '',
+          storage: l.storage || '',
+          ram: l.ram || '',
+          condition: l.condition || '',
+          warranty: l.warranty || '',
+          location: l.location || '',
+          serviceMode: l.serviceMode || '',
+          experience: l.experience || '',
+          destination: l.destination || '',
+          durationDays: l.durationDays ?? '',
+          groupSize: l.groupSize || '',
         });
         setCustomCategory(known ? '' : l.category || '');
         const platList = l.type === 'app' ? APP_PLATFORMS : WEB_PLATFORMS;
         const knownPlat = platList.includes(l.platform);
-        setCustomPlatform(l.platform && !knownPlat ? l.platform : '');
+        setCustomPlatform(l.platform && !knownPlat && !marketCfg ? l.platform : '');
         setImages((l.screenshots || []).map((url, i) => ({ name: `shot-${i + 1}`, url })));
       })
       .catch((e) => setError(e.message))
@@ -211,10 +267,25 @@ export default function Sell() {
   }
 
   const isApp = form.type === 'app';
-  const cats = isApp ? APP_CATS : WEB_CATS;
+  const isMarket = Boolean(MARKET_TYPES[form.type]);
+  const marketCfg = MARKET_TYPES[form.type] || null;
+  const cats = marketCfg ? marketCfg.categories : isApp ? APP_CATS : WEB_CATS;
   const descLen = form.description.length;
   const platOptions = isApp ? APP_PLATFORMS : WEB_PLATFORMS;
   const platFallback = isApp ? 'Android' : 'WordPress';
+
+  function pickType(nextType) {
+    setCustomCategory('');
+    setCustomPlatform('');
+    if (nextType === 'app') {
+      setForm((f) => ({ ...f, type: 'app', category: 'Education', platform: 'Android' }));
+    } else if (nextType === 'website') {
+      setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities', platform: 'WordPress' }));
+    } else {
+      const cfg = MARKET_TYPES[nextType];
+      setForm((f) => ({ ...f, type: nextType, category: cfg.categories[0], platform: '' }));
+    }
+  }
 
   const platformField = (
     <div>
@@ -264,7 +335,7 @@ export default function Sell() {
         <div className="sell-head-copy">
           <h1>{isEdit ? 'Edit listing' : 'Sell Your Project'}</h1>
           <p className="sell-sub">
-            {isEdit ? 'Update your website or Android app listing' : 'List your website or Android app'}
+            {isEdit ? 'Update your listing details' : 'List a website, app, vehicle, mobile, service or tour'}
           </p>
           <p className="sell-desc">
             {isEdit
@@ -305,38 +376,17 @@ export default function Sell() {
         <form className="form sell-card" onSubmit={submit}>
           <label>Project type</label>
           <div className="type-cards">
-            <button
-              type="button"
-              className={!isApp ? 'on' : ''}
-              onClick={() => {
-                setCustomCategory('');
-                setForm((f) => ({ ...f, type: 'website', category: 'Tools & Utilities', platform: 'WordPress' }));
-                setCustomPlatform('');
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <rect x="3" y="5" width="18" height="12" rx="2" />
-                <path d="M2 19h20" />
-              </svg>
-              Website
-            </button>
-            <button
-              type="button"
-              className={isApp ? 'on' : ''}
-              onClick={() => {
-                setCustomCategory('');
-                setForm((f) => ({ ...f, type: 'app', category: 'Education', platform: 'Android' }));
-                setCustomPlatform('');
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="22" height="22">
-                <path d="M17 7l2.2-3.2M7 7L4.8 3.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" fill="none" />
-                <rect x="5" y="8" width="14" height="11" rx="3" fill="currentColor" />
-                <circle cx="9" cy="12.5" r="1.1" fill="#fff" />
-                <circle cx="15" cy="12.5" r="1.1" fill="#fff" />
-              </svg>
-              Android App
-            </button>
+            {TYPE_OPTIONS.map((option) => (
+              <button
+                key={option.type}
+                type="button"
+                className={form.type === option.type ? 'on' : ''}
+                onClick={() => pickType(option.type)}
+              >
+                {TYPE_ICONS[option.type]}
+                {option.label}
+              </button>
+            ))}
           </div>
 
           <label>Name</label>
@@ -377,7 +427,7 @@ export default function Sell() {
             </div>
             {isApp ? (
               platformField
-            ) : (
+            ) : isMarket ? null : (
               <div>
                 <label>Domain age</label>
                 <input
@@ -394,17 +444,46 @@ export default function Sell() {
               <label>Asking price (INR)</label>
               <input type="number" value={form.price} onChange={(e) => set('price', e.target.value)} required />
             </div>
-            <div>
-              <label>Monthly revenue (INR)</label>
-              <input
-                type="number"
-                value={form.monthlyRevenue}
-                onChange={(e) => set('monthlyRevenue', e.target.value)}
-              />
-            </div>
+            {!isMarket && (
+              <div>
+                <label>Monthly revenue (INR)</label>
+                <input
+                  type="number"
+                  value={form.monthlyRevenue}
+                  onChange={(e) => set('monthlyRevenue', e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
-          {isApp ? (
+          {isMarket ? (
+            <>
+              {chunk(marketCfg.fields, 2).map((pair, index) => (
+                <div className="row" key={`market-row-${index}`}>
+                  {pair.map((f) => (
+                    <div key={f.key}>
+                      <label>{f.label}</label>
+                      {f.options ? (
+                        <select value={form[f.key] || f.options[0]} onChange={(e) => set(f.key, e.target.value)}>
+                          {f.options.map((option) => (
+                            <option key={option}>{option}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={f.type || 'text'}
+                          value={form[f.key] || ''}
+                          onChange={(e) => set(f.key, e.target.value)}
+                          placeholder={f.placeholder}
+                          required={f.required}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          ) : isApp ? (
             <>
               <div className="row">
                 <div>
@@ -525,12 +604,16 @@ export default function Sell() {
             )}
           </div>
 
-          <label>Tech stack (comma separated)</label>
-          <input
-            value={form.techStack}
-            onChange={(e) => set('techStack', e.target.value)}
-            placeholder="React, Node.js, MongoDB"
-          />
+          {!isMarket && (
+            <>
+              <label>Tech stack (comma separated)</label>
+              <input
+                value={form.techStack}
+                onChange={(e) => set('techStack', e.target.value)}
+                placeholder="React, Node.js, MongoDB"
+              />
+            </>
+          )}
           {error && <p className="error">{error}</p>}
           {!isEdit && limitReached && (
             <button className="btn btn-primary sell-submit" type="button" onClick={() => setShowPay(true)}>

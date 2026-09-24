@@ -178,6 +178,21 @@ const LISTING_PACK_SLOTS = 5;
 const UPI_ID = 'hhharishsingh@ybl';
 const UPI_NAME = 'NexMarket';
 
+const MARKET_TYPES = new Set(['vehicle', 'mobile', 'service', 'tour']);
+const WEBSITE_APP_TYPES = new Set(['website', 'app']);
+const LISTING_TYPES = new Set([...WEBSITE_APP_TYPES, ...MARKET_TYPES]);
+
+function cleanStr(value) {
+  return String(value == null ? '' : value).trim();
+}
+
+function toNumOrNull(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+
 function listingCountFor(userId) {
   return listings.filter((l) => l.sellerId === userId && !l.removed).length;
 }
@@ -456,12 +471,26 @@ app.get('/api/listings', optionalAuth, (req, res) => {
     if (!isAdmin) return l.status === 'approved';
     return true;
   });
-  if (type === 'website' || type === 'app') {
+  if (type && type !== 'all') {
     items = items.filter((l) => l.type === type);
   }
   if (category) {
     items = items.filter((l) => l.category.toLowerCase() === String(category).toLowerCase());
   }
+  for (const key of ['brand', 'fuel', 'transmission', 'condition', 'location', 'destination', 'serviceMode']) {
+    const value = req.query[key];
+    if (value) {
+      items = items.filter(
+        (l) => String(l[key] || '').toLowerCase() === String(value).toLowerCase()
+      );
+    }
+  }
+  const minYear = Number(req.query.minYear);
+  const maxYear = Number(req.query.maxYear);
+  const maxKm = Number(req.query.maxKm);
+  if (Number.isFinite(minYear) && minYear) items = items.filter((l) => Number(l.year) >= minYear);
+  if (Number.isFinite(maxYear) && maxYear) items = items.filter((l) => Number(l.year) <= maxYear);
+  if (Number.isFinite(maxKm) && maxKm) items = items.filter((l) => Number(l.km) <= maxKm);
   if (q) {
     const term = String(q).toLowerCase();
     items = items.filter(
@@ -508,12 +537,28 @@ app.post('/api/listings', auth, async (req, res) => {
      appSize,
      domainAge,
      platform,
+     brand,
+     fuel,
+     transmission,
+     owners,
+     year,
+     km,
+     condition,
+     warranty,
+     storage,
+     ram,
+     location,
+     serviceMode,
+     experience,
+     destination,
+     durationDays,
+     groupSize,
    } = req.body || {};
   if (!type || !name || !price || !description) {
     return res.status(400).json({ error: 'Type, name, price and description required' });
   }
-  if (type !== 'website' && type !== 'app') {
-    return res.status(400).json({ error: 'Type must be website or app' });
+  if (!LISTING_TYPES.has(type)) {
+    return res.status(400).json({ error: 'Invalid listing type' });
   }
   if (atListingLimit(req.user)) {
     return res.status(403).json({
@@ -530,7 +575,9 @@ app.post('/api/listings', auth, async (req, res) => {
     type,
     name: String(name).trim(),
     subtitle: desc.slice(0, 140),
-    category: category || (type === 'app' ? 'Education' : 'Tools & Utilities'),
+    category:
+      category ||
+      (type === 'app' ? 'Education' : type === 'website' ? 'Tools & Utilities' : ''),
     price: Number(price),
     monthlyRevenue: Number(monthlyRevenue) || 0,
     traffic: type === 'website' ? String(traffic || '0/month') : '',
@@ -545,9 +592,9 @@ app.post('/api/listings', auth, async (req, res) => {
     status: 'pending',
     featured: false,
     createdAt: new Date().toISOString(),
-    keyFeatures: ['Source and assets included', 'Admin-reviewed listing', 'Direct seller contact'],
-    whySelling: 'Looking for a buyer to take this project forward.',
-    included: type === 'app' ? 'Source code, store assets, documentation' : 'Domain, hosting notes, content, analytics',
+    keyFeatures: ['Verified details', 'Admin-reviewed listing', 'Direct seller contact'],
+    whySelling: 'Looking for a buyer to take this forward.',
+    included: type === 'app' ? 'Source code, store assets, documentation' : type === 'website' ? 'Domain, hosting notes, content, analytics' : '',
     support: '2 Weeks Support',
     lastUpdated: listedOn,
     listedOn,
@@ -556,10 +603,31 @@ app.post('/api/listings', auth, async (req, res) => {
     monetization: String(monetization == null ? '' : monetization).trim(),
     language: 'English',
     cover: 'generic',
-    platform: type === 'app' ? String(platform || '').trim() || 'Android' : String(platform || '').trim() || 'Web',
+    platform:
+      type === 'app'
+        ? String(platform || '').trim() || 'Android'
+        : type === 'website'
+        ? String(platform || '').trim() || 'Web'
+        : '',
     appSize: type === 'app' ? String(appSize || '').trim() || '—' : '',
     minAndroid: type === 'app' ? 'Android 5.0+' : '',
     domainAge: type === 'website' ? String(domainAge || '').trim() || '—' : '',
+    brand: cleanStr(brand),
+    fuel: cleanStr(fuel),
+    transmission: cleanStr(transmission),
+    owners: cleanStr(owners),
+    year: toNumOrNull(year),
+    km: toNumOrNull(km),
+    condition: cleanStr(condition),
+    warranty: cleanStr(warranty),
+    storage: cleanStr(storage),
+    ram: cleanStr(ram),
+    location: cleanStr(location),
+    serviceMode: cleanStr(serviceMode),
+    experience: cleanStr(experience),
+    destination: cleanStr(destination),
+    durationDays: toNumOrNull(durationDays),
+    groupSize: cleanStr(groupSize),
     userStats: {
       downloads: type === 'app' ? String(downloads || '0+') : String(traffic || '0'),
       users: '—',
@@ -593,9 +661,25 @@ app.patch('/api/listings/:id', auth, async (req, res) => {
      appSize,
      domainAge,
      platform,
+     brand,
+     fuel,
+     transmission,
+     owners,
+     year,
+     km,
+     condition,
+     warranty,
+     storage,
+     ram,
+     location,
+     serviceMode,
+     experience,
+     destination,
+     durationDays,
+     groupSize,
    } = req.body || {};
-  if (type && type !== 'website' && type !== 'app') {
-    return res.status(400).json({ error: 'Type must be website or app' });
+  if (type && !LISTING_TYPES.has(type)) {
+    return res.status(400).json({ error: 'Invalid listing type' });
   }
   if (type) listing.type = type;
   if (name) listing.name = String(name).trim();
@@ -612,7 +696,31 @@ app.patch('/api/listings/:id', auth, async (req, res) => {
   if (listing.type !== 'website') listing.domainAge = '';
   if (platform !== undefined) {
     listing.platform =
-      listing.type === 'app' ? String(platform || '').trim() || 'Android' : String(platform || '').trim() || 'Web';
+      listing.type === 'app'
+        ? String(platform || '').trim() || 'Android'
+        : listing.type === 'website'
+        ? String(platform || '').trim() || 'Web'
+        : '';
+  }
+  for (const key of [
+    'brand',
+    'fuel',
+    'transmission',
+    'owners',
+    'condition',
+    'warranty',
+    'storage',
+    'ram',
+    'location',
+    'serviceMode',
+    'experience',
+    'destination',
+    'groupSize',
+  ]) {
+    if (req.body?.[key] !== undefined) listing[key] = cleanStr(req.body[key]);
+  }
+  for (const key of ['year', 'km', 'durationDays']) {
+    if (req.body?.[key] !== undefined) listing[key] = toNumOrNull(req.body[key]);
   }
   if (description) {
     listing.description = String(description);
@@ -994,6 +1102,10 @@ const SITEMAP_STATIC_PAGES = [
   { path: '/', changefreq: 'daily', priority: '1.0' },
   { path: '/websites', changefreq: 'daily', priority: '0.9' },
   { path: '/apps', changefreq: 'daily', priority: '0.9' },
+  { path: '/vehicles', changefreq: 'daily', priority: '0.9' },
+  { path: '/mobiles', changefreq: 'daily', priority: '0.9' },
+  { path: '/services', changefreq: 'daily', priority: '0.8' },
+  { path: '/tours', changefreq: 'daily', priority: '0.8' },
   { path: '/buy-website', changefreq: 'weekly', priority: '0.8' },
   { path: '/sell-website', changefreq: 'weekly', priority: '0.8' },
   { path: '/buy-android-app', changefreq: 'weekly', priority: '0.8' },

@@ -86,3 +86,41 @@ export function IconHandshake() {
     </svg>
   );
 }
+
+export function IconVehicle() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ea580c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 15l1.6-5A2 2 0 0 1 7.5 8.5h9A2 2 0 0 1 18.4 10L20 15" />
+      <path d="M3 15h18v4H3z" />
+      <circle cx="7.5" cy="19" r="1.6" fill="#ea580c" stroke="none" />
+      <circle cx="16.5" cy="19" r="1.6" fill="#ea580c" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconMobile() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#7c3aed" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+      <path d="M10.5 5.5h3" />
+      <circle cx="12" cy="18.5" r="1" fill="#7c3aed" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconService() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#0891b2" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 6.5a4 4 0 0 1-5.3 5.3L5 16l3 3 4.2-4.2a4 4 0 0 1 5.3-5.3l-3.2 3.2 2 2 3.2-3.2z" />
+    </svg>
+  );
+}
+
+export function IconTour() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#db2777" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" />
+    </svg>
+  );
+}

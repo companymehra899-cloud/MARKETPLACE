@@ -12,7 +12,10 @@ export default function Navbar() {
   const navigate = useNavigate();
   const initial = (user?.name || 'A').charAt(0).toUpperCase();
   const onApps = location.pathname.startsWith('/apps');
-  const searchPath = onApps ? '/apps' : '/websites';
+  const marketPath = ['/vehicles', '/mobiles', '/services', '/tours'].find((p) =>
+    location.pathname.startsWith(p)
+  );
+  const searchPath = marketPath || (onApps ? '/apps' : '/websites');
 
   function onSearch(e) {
     e.preventDefault();
@@ -30,13 +33,25 @@ export default function Navbar() {
             Home
           </NavLink>
           <NavLink to="/websites" onClick={() => setOpen(false)}>
-            Websites for Sale
+            Websites
           </NavLink>
           <NavLink to="/apps" onClick={() => setOpen(false)}>
-            Apps for Sale
+            Apps
+          </NavLink>
+          <NavLink to="/vehicles" onClick={() => setOpen(false)}>
+            Vehicles
+          </NavLink>
+          <NavLink to="/mobiles" onClick={() => setOpen(false)}>
+            Mobiles
+          </NavLink>
+          <NavLink to="/services" onClick={() => setOpen(false)}>
+            Services
+          </NavLink>
+          <NavLink to="/tours" onClick={() => setOpen(false)}>
+            Tours
           </NavLink>
           <NavLink to="/sell" onClick={() => setOpen(false)}>
-            Sell Your Project
+            Sell
           </NavLink>
         </nav>
         <form className="nav-search" onSubmit={onSearch}>
