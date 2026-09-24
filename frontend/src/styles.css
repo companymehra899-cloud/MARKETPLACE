@@ -3100,16 +3100,34 @@ main {
 }
 
 .browse-seo {
-  margin: 48px 0 8px;
-  max-width: 860px;
+  margin: 56px auto 8px;
+  max-width: 900px;
+  padding: 34px 40px 32px;
+  background: #ffffff;
+  border: 1px solid #e6ecf5;
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
   text-align: left;
 }
 
 .browse-seo h2 {
+  position: relative;
+  margin: 0 0 22px;
+  padding-bottom: 14px;
   font-size: 28px;
   letter-spacing: -0.02em;
-  margin: 0 0 16px;
   color: #0f172a;
+}
+
+.browse-seo h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 56px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--blue);
 }
 
 .browse-seo p {
@@ -3121,6 +3139,17 @@ main {
 
 .browse-seo p:last-child {
   margin-bottom: 0;
+}
+
+@media (max-width: 980px) {
+  .browse-seo {
+    padding: 26px 22px 24px;
+    border-radius: 14px;
+  }
+
+  .browse-seo h2 {
+    font-size: 23px;
+  }
 }
 
 .listing-card .ask {
