@@ -3100,17 +3100,19 @@ main {
 }
 
 .browse-seo {
-  margin: 56px auto 8px;
-  max-width: 900px;
-  padding: 34px 40px 32px;
+  margin: 48px 0 8px;
+  padding: 36px 44px 34px;
   background: #ffffff;
   border: 1px solid #e6ecf5;
   border-radius: 18px;
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
   text-align: left;
+  column-count: 2;
+  column-gap: 48px;
 }
 
 .browse-seo h2 {
+  column-span: all;
   position: relative;
   margin: 0 0 22px;
   padding-bottom: 14px;
@@ -3135,6 +3137,7 @@ main {
   color: #334155;
   font-size: 15px;
   line-height: 1.75;
+  break-inside: avoid;
 }
 
 .browse-seo p:last-child {
@@ -3145,6 +3148,7 @@ main {
   .browse-seo {
     padding: 26px 22px 24px;
     border-radius: 14px;
+    column-count: 1;
   }
 
   .browse-seo h2 {
