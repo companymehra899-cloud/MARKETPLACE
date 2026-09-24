@@ -67,62 +67,6 @@ export default function Home() {
             />
             <button type="submit">Search</button>
           </form>
-          <div className="hero-cats">
-            <Link to="/websites" className="cat-chip web">
-              <span className="cat-ico">
-                <IconLaptop />
-              </span>
-              <span>
-                <strong>Websites for Sale</strong>
-                <em>Buy a website in India →</em>
-              </span>
-            </Link>
-            <Link to="/apps" className="cat-chip app">
-              <span className="cat-ico green">
-                <IconAndroid />
-              </span>
-              <span>
-                <strong>Android Apps for Sale</strong>
-                <em>Buy an Android app in India →</em>
-              </span>
-            </Link>
-            <Link to="/vehicles" className="cat-chip vehicle">
-              <span className="cat-ico">
-                <IconVehicle />
-              </span>
-              <span>
-                <strong>Vehicles for Sale</strong>
-                <em>Cars, bikes &amp; scooters →</em>
-              </span>
-            </Link>
-            <Link to="/mobiles" className="cat-chip mobile">
-              <span className="cat-ico">
-                <IconMobile />
-              </span>
-              <span>
-                <strong>Second Hand Mobiles</strong>
-                <em>Used phones near you →</em>
-              </span>
-            </Link>
-            <Link to="/services" className="cat-chip service">
-              <span className="cat-ico">
-                <IconService />
-              </span>
-              <span>
-                <strong>Local Services</strong>
-                <em>Home, repair &amp; more →</em>
-              </span>
-            </Link>
-            <Link to="/tours" className="cat-chip tour">
-              <span className="cat-ico">
-                <IconTour />
-              </span>
-              <span>
-                <strong>Tour &amp; Travels</strong>
-                <em>Holiday packages →</em>
-              </span>
-            </Link>
-          </div>
         </div>
         <div className="hero-art" aria-hidden="true">
           <div className="laptop">
@@ -173,6 +117,62 @@ export default function Home() {
             </div>
           </div>
           <span className="spark" />
+        </div>
+        <div className="hero-cats">
+          <Link to="/websites" className="cat-chip web">
+            <span className="cat-ico">
+              <IconLaptop />
+            </span>
+            <span>
+              <strong>Websites for Sale</strong>
+              <em>Buy a website in India →</em>
+            </span>
+          </Link>
+          <Link to="/apps" className="cat-chip app">
+            <span className="cat-ico green">
+              <IconAndroid />
+            </span>
+            <span>
+              <strong>Android Apps for Sale</strong>
+              <em>Buy an Android app in India →</em>
+            </span>
+          </Link>
+          <Link to="/vehicles" className="cat-chip vehicle">
+            <span className="cat-ico">
+              <IconVehicle />
+            </span>
+            <span>
+              <strong>Vehicles for Sale</strong>
+              <em>Cars, bikes &amp; scooters →</em>
+            </span>
+          </Link>
+          <Link to="/mobiles" className="cat-chip mobile">
+            <span className="cat-ico">
+              <IconMobile />
+            </span>
+            <span>
+              <strong>Second Hand Mobiles</strong>
+              <em>Used phones near you →</em>
+            </span>
+          </Link>
+          <Link to="/services" className="cat-chip service">
+            <span className="cat-ico">
+              <IconService />
+            </span>
+            <span>
+              <strong>Local Services</strong>
+              <em>Home, repair &amp; more →</em>
+            </span>
+          </Link>
+          <Link to="/tours" className="cat-chip tour">
+            <span className="cat-ico">
+              <IconTour />
+            </span>
+            <span>
+              <strong>Tour &amp; Travels</strong>
+              <em>Holiday packages →</em>
+            </span>
+          </Link>
         </div>
       </section>
 

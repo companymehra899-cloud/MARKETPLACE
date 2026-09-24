@@ -329,21 +329,22 @@ main {
 }
 
 .hero-cats {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 14px;
-  margin-top: 20px;
-  max-width: 560px;
+  margin-top: 32px;
 }
 
 .cat-chip {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: #eef5ff;
   border: 0;
   border-radius: 16px;
   padding: 14px 16px;
+  min-width: 0;
 }
 
 .cat-chip.app {
@@ -352,7 +353,8 @@ main {
 
 .cat-chip strong {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.25;
 }
 
 .cat-chip em {
@@ -360,16 +362,30 @@ main {
   font-style: normal;
   color: var(--muted);
   font-size: 12px;
+  line-height: 1.3;
   margin-top: 2px;
 }
 
 .cat-ico {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   border-radius: 12px;
   background: transparent;
   display: grid;
   place-items: center;
+}
+
+@media (max-width: 1100px) {
+  .hero-cats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .hero-cats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .hero-art {
