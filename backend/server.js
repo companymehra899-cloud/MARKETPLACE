@@ -172,7 +172,7 @@ function adminOnly(req, res, next) {
   next();
 }
 
-const FREE_LISTING_LIMIT = 3;
+const FREE_LISTING_LIMIT = 2;
 const LISTING_PACK_PRICE = 100;
 const LISTING_PACK_SLOTS = 5;
 const UPI_ID = 'hhharishsingh@ybl';

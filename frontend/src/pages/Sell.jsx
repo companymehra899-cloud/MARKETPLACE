@@ -133,7 +133,7 @@ export default function Sell() {
   const [loading, setLoading] = useState(isEdit);
   const [limitReached, setLimitReached] = useState(false);
   const [listingCount, setListingCount] = useState(0);
-  const [listingLimit, setListingLimit] = useState(3);
+  const [listingLimit, setListingLimit] = useState(2);
   const [pack, setPack] = useState(null);
   const [showPay, setShowPay] = useState(false);
   const fileRef = useRef(null);
@@ -147,7 +147,7 @@ export default function Sell() {
     return Promise.all([api('/api/my/listings'), api('/api/payments/pack')])
       .then(([d, p]) => {
         const count = d.stats?.listingCount ?? (d.listings || []).length;
-        const limit = d.stats?.listingLimit ?? 3;
+        const limit = d.stats?.listingLimit ?? 2;
         const reached = limit != null && count >= limit;
         setListingCount(count);
         setListingLimit(limit);
