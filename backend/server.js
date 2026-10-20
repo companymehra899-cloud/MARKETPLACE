@@ -589,7 +589,7 @@ app.post('/api/listings', auth, async (req, res) => {
     phone: String(req.user.phone || '').trim(),
     liveUrl: type === 'website' ? String(liveUrl || '').trim() : '',
     sellerId: req.user.id,
-    status: 'pending',
+    status: 'approved',
     featured: false,
     createdAt: new Date().toISOString(),
     keyFeatures: ['Verified details', 'Admin-reviewed listing', 'Direct seller contact'],
