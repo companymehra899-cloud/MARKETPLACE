@@ -99,7 +99,7 @@ const SIMILAR_PHOTOS = {
 function listingPhotos(listing) {
   const uploaded = (listing.screenshots || []).filter(Boolean);
   const source = uploaded.length ? uploaded : WEB_GALLERIES[listing.cover] || WEB_GALLERIES.generic;
-  return source.slice(0, 4);
+  return source.slice(0, 2);
 }
 
 function similarPhoto(listing) {
