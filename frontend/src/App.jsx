@@ -13,6 +13,7 @@ import MyListings from './pages/MyListings.jsx';
 import Admin from './pages/Admin.jsx';
 import Static from './pages/Static.jsx';
 import Guides from './pages/Guides.jsx';
+import WhyNexMarket from './pages/WhyNexMarket.jsx';
 import {
   OffersPage,
   MessagesPage,
@@ -206,6 +207,7 @@ export default function App() {
               </AdminOnly>
             }
           />
+          <Route path="/why-nexmarket" element={<WhyNexMarket />} />
           <Route path="/how-it-works" element={<Static kind="how" />} />
           <Route path="/help" element={<Static kind="help" />} />
           <Route path="/safety" element={<Static kind="safety" />} />

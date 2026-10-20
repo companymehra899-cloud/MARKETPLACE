@@ -23,6 +23,7 @@ export default function Footer() {
         </div>
         <div>
           <h4>Marketplace</h4>
+          <Link to="/why-nexmarket">Why NexMarket</Link>
           <Link to="/websites">Websites for Sale</Link>
           <Link to="/apps">Android Apps for Sale</Link>
           <Link to="/buy-website">Buy a Website</Link>

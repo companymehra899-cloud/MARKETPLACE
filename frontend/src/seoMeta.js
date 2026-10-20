@@ -131,6 +131,81 @@ export const ROUTE_META = {
         { name: 'Tour & Travels', path: '/tours' },
       ]),
   },
+  '/why-nexmarket': {
+    title: 'Why NexMarket | Buy and Sell Websites and Apps in India',
+    description:
+      'Why NexMarket: India marketplace to buy and sell websites and Android apps in INR. Admin-reviewed listings, free to start, one account to buy and sell, and you keep ownership until transfer.',
+    jsonLd: (origin) => [
+      breadcrumbLd(origin, [
+        { name: 'Home', path: '/' },
+        { name: 'Why NexMarket', path: '/why-nexmarket' },
+      ]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Why NexMarket',
+        url: `${origin}/why-nexmarket`,
+        description:
+          'Why choose NexMarket to buy and sell websites and Android apps in India with INR prices and admin-reviewed listings.',
+        isPartOf: { '@type': 'WebSite', name: 'NexMarket', url: `${origin}/` },
+        about: { '@type': 'Organization', name: 'NexMarket', url: `${origin}/` },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Why choose NexMarket to buy or sell a website in India?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'NexMarket is built for India: INR pricing, admin-reviewed listings, and buyers who want websites and Android apps with traffic, revenue and downloads. You keep ownership until you complete the transfer with the other party.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Is NexMarket like Flippa for India?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'NexMarket is an India-focused marketplace to buy and sell websites, Android apps and online businesses. Prices and offers are in INR. Deals are completed between buyer and seller after you verify the numbers.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Do I pay a commission on NexMarket?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Listing is free for the first 3 projects. Extra listing packs are ₹100 for 5 listings after admin UTR approval. NexMarket does not take ownership of your website or app.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Are listings checked before they go live?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Yes. Admin reviews every listing. After approval it appears on Websites for Sale or Android Apps for Sale and in the sitemap for Google.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How do buyers stay safe?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Verify traffic, revenue and Play Console screenshots before paying. Use escrow or milestone payments for large transfers. Never share OTPs. Report fake listings from the listing page.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'What can I buy or sell on NexMarket?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Websites (blogs, ecommerce, SaaS, news, education) and Android apps with downloads, ratings and monthly revenue. You can also browse vehicles, mobiles, local services and tour packages.',
+            },
+          },
+        ],
+      },
+    ],
+  },
   '/how-it-works': {
     title: 'How to Buy and Sell a Website or App',
     description:

@@ -1111,6 +1111,7 @@ const SITEMAP_STATIC_PAGES = [
   { path: '/buy-android-app', changefreq: 'weekly', priority: '0.8' },
   { path: '/sell-android-app', changefreq: 'weekly', priority: '0.8' },
   { path: '/online-businesses', changefreq: 'weekly', priority: '0.8' },
+  { path: '/why-nexmarket', changefreq: 'weekly', priority: '0.8' },
   { path: '/how-it-works', changefreq: 'monthly', priority: '0.5' },
   { path: '/help', changefreq: 'monthly', priority: '0.5' },
   { path: '/safety', changefreq: 'monthly', priority: '0.5' },
